@@ -6,7 +6,8 @@ pub const PRODUCT_EXPANSION: &str = "Multi Editor";
 pub const FROZEN_VER_1: &str = "1.5.0.0-frozen";
 pub const PRE_PILOT_VER_2: &str = "2.0.0.0-pre-pilot";
 pub const VER_2_1_BASELINE: &str = "2.1.0.0";
-pub const CURRENT_BASELINE_VERSION: &str = VER_2_1_BASELINE;
+pub const VER_2_2_BASELINE: &str = "2.2.0.0";
+pub const CURRENT_BASELINE_VERSION: &str = VER_2_2_BASELINE;
 pub const VERSION_SCHEMA: &str = "Major release.Minor release.Bugfix or enhancement.Build";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -161,7 +162,17 @@ mod tests {
         assert_eq!(version.bugfix_or_enhancement, 0);
         assert_eq!(version.build, 0);
         assert_eq!(version.label, None);
-        assert_eq!(CURRENT_BASELINE_VERSION, VER_2_1_BASELINE);
+    }
+
+    #[test]
+    fn parses_ver_2_2_baseline_version() {
+        let version = AppVersion::from_str(VER_2_2_BASELINE).expect("Ver 2.2 should parse");
+        assert_eq!(version.major_release, 2);
+        assert_eq!(version.minor_release, 2);
+        assert_eq!(version.bugfix_or_enhancement, 0);
+        assert_eq!(version.build, 0);
+        assert_eq!(version.label, None);
+        assert_eq!(CURRENT_BASELINE_VERSION, VER_2_2_BASELINE);
     }
 
     #[test]

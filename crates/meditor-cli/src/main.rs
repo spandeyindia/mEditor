@@ -45,8 +45,20 @@ fn main() -> ExitCode {
             print_project_planner();
             ExitCode::SUCCESS
         }
+        Some("project-importers") => {
+            print_project_importers();
+            ExitCode::SUCCESS
+        }
         Some("about-help") => {
             print_about_help();
+            ExitCode::SUCCESS
+        }
+        Some("ver22-pilot") => {
+            print_ver22_pilot();
+            ExitCode::SUCCESS
+        }
+        Some("validators") => {
+            print_validators();
             ExitCode::SUCCESS
         }
         Some("ver21-safety") => {
@@ -86,7 +98,7 @@ fn print_status() {
     let launcher_plan = meditor_packaging::GenericJarPackagingPlan::ver_1_default();
     let scanner = meditor_code_security::CodeSecurityScanner::with_seed_rules();
     let repo_layout = meditor_cvss_repository::RepositoryLayout::under_working_folder(".");
-    let workbench = meditor_workbench::WorkbenchBaseline::ver_2_1();
+    let workbench = meditor_workbench::WorkbenchBaseline::ver_2_2();
     let rest_config = meditor_installation_metrics::BackendEndpointConfig::oracle_apex_default();
 
     println!(
@@ -97,7 +109,7 @@ fn print_status() {
     println!("version schema: {}", meditor_core::VERSION_SCHEMA);
     println!("current platform: {:?} {:?}", platform.os, platform.arch);
     println!(
-        "Ver 2.1 laptop target: {}",
+        "Ver 2.2 laptop target: {}",
         platform.is_ver_1_laptop_target()
     );
     println!(
@@ -120,6 +132,15 @@ fn print_status() {
     println!("AI knowledge formats: {}", workbench.ai_knowledge_formats);
     println!("AI capabilities: {}", workbench.ai_capabilities);
     println!("project import modes: {}", workbench.project_import_modes);
+    println!("project import kinds: {}", workbench.project_import_kinds);
+    println!(
+        "Visual Studio project file kinds: {}",
+        workbench.visual_studio_project_file_kinds
+    );
+    println!(
+        "Visual Studio import steps: {}",
+        workbench.visual_studio_import_steps
+    );
     println!("project node kinds: {}", workbench.project_node_kinds);
     println!("planning item kinds: {}", workbench.planning_item_kinds);
     println!(
@@ -291,6 +312,35 @@ fn print_status() {
     );
     println!("keymap profiles: {}", workbench.keymap_profiles);
     println!(
+        "pilot hardening capabilities: {}",
+        workbench.pilot_hardening_capabilities
+    );
+    println!(
+        "pilot hardening workflow steps: {}",
+        workbench.pilot_hardening_workflow_steps
+    );
+    println!("update channels: {}", workbench.update_channels);
+    println!(
+        "diagnostics bundle items: {}",
+        workbench.diagnostics_bundle_items
+    );
+    println!("privacy data flows: {}", workbench.privacy_data_flows);
+    println!(
+        "extension contribution kinds: {}",
+        workbench.extension_contribution_kinds
+    );
+    println!("extension SDK steps: {}", workbench.extension_sdk_steps);
+    println!("workspace index kinds: {}", workbench.workspace_index_kinds);
+    println!(
+        "workspace indexer steps: {}",
+        workbench.workspace_indexer_steps
+    );
+    println!("validator tools: {}", workbench.validator_tools);
+    println!(
+        "validator workflow steps: {}",
+        workbench.validator_workflow_steps
+    );
+    println!(
         "self-learning AI service contract enabled: {}",
         workbench.self_learning_ai_service_enabled
     );
@@ -307,7 +357,7 @@ fn print_status() {
 
 fn print_help() {
     println!("mEditor command line");
-    println!("  meditor                 Show current Ver 2.1 scaffold status");
+    println!("  meditor                 Show current Ver 2.2 scaffold status");
     println!("  meditor scan-file PATH  Run seed Code Security Analyzer rules on one file");
     println!("  meditor cvss-schema     Print the local SQLite CVSS repository schema");
     println!("  meditor sqlite-setup    Show SQLite setup files and commands");
@@ -321,7 +371,11 @@ fn print_help() {
     println!("  meditor local-bugs     Show local-only user bug repository and report contract");
     println!("  meditor project-planner");
     println!("                          Show major project, sub-project, portfolio planning, and planner-to-project contract");
+    println!("  meditor project-importers");
+    println!("                          Show NetBeans, Eclipse, JDeveloper, and Visual Studio import contract");
     println!("  meditor about-help      Show embedded About Project and Project Help model");
+    println!("  meditor ver22-pilot     Show Update Channel, Diagnostics, Privacy, Extension SDK, and Indexer model");
+    println!("  meditor validators      Show XML Validator and JSON Validator model");
     println!(
         "  meditor ver21-safety    Show Workspace Trust, history, vault, backup, and audit model"
     );
@@ -330,6 +384,96 @@ fn print_help() {
     println!("                          Show plugin permissions, accessibility, and keymap model");
     println!("  meditor init-sqlite [WORKING_FOLDER]");
     println!("                          Create SQLite data structures using sqlite3 on PATH");
+}
+
+fn print_project_importers() {
+    let visual_studio = meditor_project_importers::VisualStudioImportPlan::default_plan();
+
+    println!("mEditor Project Importers");
+    println!("menu: {}", visual_studio.menu_path);
+    println!(
+        "supported project kinds: {}",
+        meditor_project_importers::supported_project_kinds().len()
+    );
+    println!(
+        "Visual Studio file kinds: {}",
+        meditor_project_importers::visual_studio_project_file_kinds().len()
+    );
+    println!(
+        "maps solution projects to subprojects: {}",
+        visual_studio.maps_solution_projects_to_subprojects
+    );
+    println!(
+        "maps MSBuild configurations and platforms: {}",
+        visual_studio.maps_configurations_and_platforms
+    );
+    println!(
+        "maps C++ filters as virtual folders: {}",
+        visual_studio.maps_filters_as_virtual_folders
+    );
+    println!("Visual Studio import steps:");
+    for step in meditor_project_importers::visual_studio_import_steps() {
+        println!("  {step}");
+    }
+}
+
+fn print_ver22_pilot() {
+    let updates = meditor_pilot_hardening::UpdateChannelManagerPlan::default_plan();
+    let diagnostics = meditor_pilot_hardening::DiagnosticsBundlePlan::default_plan();
+    let privacy = meditor_pilot_hardening::PrivacyCenterPlan::default_plan();
+    let extension_sdk = meditor_extension_sdk::ExtensionSdkPlan::default_plan();
+    let indexer = meditor_workspace_indexer::WorkspaceIndexerPlan::default_plan();
+
+    println!("mEditor Ver 2.2 Pilot Hardening");
+    println!("update channel menu: {}", updates.menu_path);
+    println!("update channels: {}", updates.channels.len());
+    println!(
+        "supports update rollback: {}",
+        updates.supports_update_rollback
+    );
+    println!("diagnostics menu: {}", diagnostics.menu_path);
+    println!("diagnostics items: {}", diagnostics.included_items.len());
+    println!(
+        "diagnostics redacts secrets: {}",
+        diagnostics.redacts_secrets
+    );
+    println!("privacy menu: {}", privacy.menu_path);
+    println!("privacy data flows: {}", privacy.visible_data_flows.len());
+    println!("extension SDK menu: {}", extension_sdk.menu_path);
+    println!(
+        "extension contribution kinds: {}",
+        extension_sdk.contribution_kinds.len()
+    );
+    println!("workspace indexer menu: {}", indexer.menu_path);
+    println!("workspace index kinds: {}", indexer.index_kinds.len());
+    println!("pilot hardening steps:");
+    for step in meditor_pilot_hardening::pilot_hardening_workflow_steps() {
+        println!("  {step}");
+    }
+    println!("extension SDK steps:");
+    for step in meditor_extension_sdk::extension_sdk_steps() {
+        println!("  {step}");
+    }
+    println!("workspace indexer steps:");
+    for step in meditor_workspace_indexer::workspace_indexer_steps() {
+        println!("  {step}");
+    }
+}
+
+fn print_validators() {
+    println!("mEditor Validators");
+    for tool in meditor_validators::validator_tools() {
+        println!(
+            "{}: extensions={:?} capabilities={}",
+            tool.menu_path,
+            tool.supported_file_extensions,
+            tool.capabilities.len()
+        );
+    }
+    println!("validator workflow steps:");
+    for step in meditor_validators::validator_workflow_steps() {
+        println!("  {step}");
+    }
 }
 
 fn print_ver21_safety() {

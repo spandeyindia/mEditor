@@ -31,6 +31,10 @@ members = [
     "crates/meditor-workspace-safety",
     "crates/meditor-delivery-automation",
     "crates/meditor-governance",
+    "crates/meditor-pilot-hardening",
+    "crates/meditor-extension-sdk",
+    "crates/meditor-workspace-indexer",
+    "crates/meditor-validators",
     "crates/meditor-cli",
 ]
 resolver = "2"

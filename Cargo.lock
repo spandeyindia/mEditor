@@ -21,18 +21,23 @@ dependencies = [
  "meditor-cvss-repository",
  "meditor-delivery-automation",
  "meditor-deployment-docs",
+ "meditor-extension-sdk",
  "meditor-governance",
  "meditor-installation-metrics",
  "meditor-local-bug-repository",
  "meditor-packaging",
+ "meditor-pilot-hardening",
  "meditor-platform",
+ "meditor-project-importers",
  "meditor-project-workspace",
  "meditor-sdlc",
  "meditor-setup",
  "meditor-shell",
  "meditor-toolchains",
  "meditor-uml-modeling",
+ "meditor-validators",
  "meditor-workbench",
+ "meditor-workspace-indexer",
  "meditor-workspace-safety",
 ]
 
@@ -80,6 +85,10 @@ name = "meditor-editor"
 version = "0.1.0"
 
 [[package]]
+name = "meditor-extension-sdk"
+version = "0.1.0"
+
+[[package]]
 name = "meditor-file-explorer"
 version = "0.1.0"
 
@@ -104,6 +113,10 @@ version = "0.1.0"
 dependencies = [
  "meditor-platform",
 ]
+
+[[package]]
+name = "meditor-pilot-hardening"
+version = "0.1.0"
 
 [[package]]
 name = "meditor-platform"
@@ -168,6 +181,10 @@ name = "meditor-uml-modeling"
 version = "0.1.0"
 
 [[package]]
+name = "meditor-validators"
+version = "0.1.0"
+
+[[package]]
 name = "meditor-vcs"
 version = "0.1.0"
 
@@ -185,11 +202,13 @@ dependencies = [
  "meditor-dependencies",
  "meditor-deployment-docs",
  "meditor-editor",
+ "meditor-extension-sdk",
  "meditor-file-explorer",
  "meditor-governance",
  "meditor-installation-metrics",
  "meditor-local-bug-repository",
  "meditor-packaging",
+ "meditor-pilot-hardening",
  "meditor-plugins",
  "meditor-project-importers",
  "meditor-project-workspace",
@@ -201,9 +220,15 @@ dependencies = [
  "meditor-tests",
  "meditor-toolchains",
  "meditor-uml-modeling",
+ "meditor-validators",
  "meditor-vcs",
+ "meditor-workspace-indexer",
  "meditor-workspace-safety",
 ]
+
+[[package]]
+name = "meditor-workspace-indexer"
+version = "0.1.0"
 
 [[package]]
 name = "meditor-workspace-safety"

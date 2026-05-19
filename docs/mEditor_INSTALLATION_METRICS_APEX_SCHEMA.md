@@ -105,7 +105,7 @@ The UI must display owner contact email `s.pandey.india@gmail.com` for direct co
 ```json
 {
   "installation_id": "local-generated-id",
-  "app_version": "2.1.0.0",
+  "app_version": "2.2.0.0",
   "os_family": "MacOS",
   "cpu_arch": "Arm64",
   "feedback_type": "BUG_REPORT",
@@ -136,7 +136,7 @@ The UI must display owner contact email `s.pandey.india@gmail.com` for direct co
 {
   "installation_id": "local-generated-id",
   "product_name": "mEditor",
-  "app_version": "2.1.0.0",
+  "app_version": "2.2.0.0",
   "registration_status": "REGISTERED",
   "registered_flag": "Y",
   "user_display_name": "Sanjay Pandey",
@@ -163,7 +163,7 @@ The UI must display owner contact email `s.pandey.india@gmail.com` for direct co
 {
   "installation_id": "local-generated-id",
   "product_name": "mEditor",
-  "app_version": "2.1.0.0",
+  "app_version": "2.2.0.0",
   "registration_status": "UNREGISTERED_FULLY_FUNCTIONAL",
   "registered_flag": "N",
   "personal_license_text": "UnRegistered but fully functional copy with no obligation",

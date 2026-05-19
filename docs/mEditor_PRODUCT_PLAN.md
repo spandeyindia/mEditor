@@ -5,11 +5,11 @@
 - **Name:** mEditor
 - **Expansion:** Multi Editor
 - **Owner:** Sanjay Pandey <s.pandey.india@gmail.com>
-- **Version:** 2.1.0.0
+- **Version:** 2.2.0.0
 - **Freeze date:** 2026-05-19
 - **Primary implementation language:** Rust
 - **Target platforms:** Windows laptops, macOS Intel laptops, macOS Apple Silicon laptops including M4, and Linux laptops.
-- **Primary experience:** Standalone SQL Developer-style IDE and database workbench with a multi-language editor, file explorer, embedded web browser, SDLC toolbar, Git/SVN version control, connection navigator, worksheets, object browser, result grids, task consoles, grouped tabbed SSH terminals, project importers, framework wizards, code security analysis, AI/ML coding assistance, AI training, spec-to-system design, and toolchain discovery.
+- **Primary experience:** Standalone SQL Developer-style IDE and database workbench with a multi-language editor, file explorer, embedded web browser, SDLC toolbar, Git/SVN version control, connection navigator, worksheets, object browser, result grids, task consoles, grouped tabbed SSH terminals, project importers including Visual Studio, framework wizards, code security analysis, AI/ML coding assistance, AI training, spec-to-system design, XML/JSON validation, and toolchain discovery.
 - **Starting product license:** `mEditor Freeware EULA` (`LicenseRef-mEditor-Freeware-EULA`), with optional future open-source relicensing such as GPL v3.0 at owner discretion.
 
 ## Ver 1 Freeze
@@ -28,6 +28,7 @@ Freeze rules:
 - The Ver 1 implementation baseline and benchmark record is maintained in `docs/mEditor_BASELINE_BENCHMARK.md`.
 - The Ver 2 pre-pilot baseline and benchmark record is maintained in `docs/mEditor_VER_2_PRE_PILOT_BASELINE.md`.
 - The Ver 2.1 baseline and benchmark record is maintained in `docs/mEditor_VER_2_1_BASELINE.md`.
+- The Ver 2.2 baseline and benchmark record is maintained in `docs/mEditor_VER_2_2_BASELINE.md`.
 
 ## Ver 2 Pre-Pilot Freeze
 
@@ -48,6 +49,27 @@ Safety rules:
 - Backups exclude raw secrets and use preview plus rollback for restore.
 - Plugin permissions are deny-by-default and logged to the local audit trail.
 - Accessibility and keyboard compatibility are first-class requirements, not optional polish.
+
+## Ver 2.2 Baseline
+
+Ver 2.2 is tracked as `2.2.0.0` on 2026-05-19. It adds Visual Studio solution/project import, Update Channel Manager, Diagnostics Bundle, Privacy Center, Extension SDK, Workspace Indexer, XML Validator, and JSON Validator.
+
+Visual Studio import requirements:
+
+- `File > Import Project` must detect `.sln`, `.csproj`, `.vbproj`, `.fsproj`, `.vcxproj`, `.vcproj`, `.sqlproj`, `.dbproj`, `.shproj`, `.esproj`, `.njsproj`, `.wixproj`, `.props`, `.targets`, and `.filters` files.
+- Solution entries map to mEditor major projects with sub-projects.
+- MSBuild configurations, platforms, properties, imports, references, package references, source roots, and generated output folders are recorded in mEditor metadata.
+- C++ `.filters` files map to virtual folders without moving physical files.
+- Import reports must show converted settings, unresolved SDKs, missing workloads, package restore requirements, and manual follow-up items.
+
+Pilot-hardening requirements:
+
+- Update Channel Manager supports stable, beta, nightly, and offline packages with release notes and rollback before install.
+- Diagnostics Bundle collects logs, environment, config, recent errors, plugin list, toolchain paths, workspace trust state, and redacted connection data after user review.
+- Privacy Center shows install, feedback, error, update, and diagnostics data flows.
+- Extension SDK supports language, compiler, formatter, debugger, snippet, template, documentation, theme, tool window, and project wizard contributions.
+- Workspace Indexer provides symbols, references, call hierarchy, TODOs, dependency graph, files, tests, and endpoints.
+- XML Validator and JSON Validator open under Tools and validate active editor tab, selected text, or chosen files with approval-gated fixes.
 
 ## Standalone Boundary
 
@@ -143,7 +165,7 @@ Recommended crates:
 - `meditor-db-modeler`: ER diagrams, schema compare, data compare, DDL generation, migration runner, and explain-plan visualization.
 - `meditor-ssh-terminus`: grouped SSH profiles, tabbed interactive terminal sessions, known-hosts validation, key/password authentication, jump hosts, port forwarding, command execution, and session logs.
 - `meditor-local-terminal`: local shell profiles, project terminals, environment activation, terminal groups, scrollback search, and transcript options.
-- `meditor-project-importers`: NetBeans, Eclipse, and JDeveloper importers with source root, classpath, dependency, builder, run profile, and server metadata mapping.
+- `meditor-project-importers`: NetBeans, Eclipse, JDeveloper, and Visual Studio importers with source root, classpath, dependency, builder, run profile, server metadata, solution/project, MSBuild, configuration, platform, reference, package, and import report mapping.
 - `meditor-frameworks`: project generators and framework-aware actions for Rust, JavaScript/TypeScript, PHP, Python, Java/JVM, R, Julia, and data apps.
 - `meditor-keymaps`: SQL Developer, NetBeans, Eclipse, VS Code, IntelliJ-style, Vim-style, Emacs-style, and custom keymap profiles.
 - `meditor-settings`: settings import/export, encrypted profile bundles, layout snapshots, theme export, keymap export, and toolchain export.
@@ -202,7 +224,14 @@ Tools menu requirements:
 - `Settings > Keymaps`: configures SQL Developer, NetBeans, Eclipse, VS Code, IntelliJ-style, Vim-style, Emacs-style, and custom shortcuts.
 - `Settings > Extensions`: installs, enables, disables, updates, and removes plugins.
 - `Settings > Import/Export`: imports and exports settings, layouts, keymaps, themes, toolchains, connections, and extension lists.
-- `File > Import Project`: imports NetBeans, Eclipse, and JDeveloper projects into the mEditor workspace model.
+- `File > Import Project`: imports NetBeans, Eclipse, JDeveloper, and Visual Studio projects into the mEditor workspace model.
+- `Tools > Extension SDK`: creates and validates extension skeletons for languages, compilers, formatters, debuggers, snippets, templates, documentation, themes, tools, and project wizards.
+- `Tools > Workspace Indexer`: indexes files, symbols, references, call hierarchy, TODOs, dependency graph, tests, and endpoints.
+- `Tools > XML Validator`: validates XML-family documents from open editor tabs, selections, or chosen files.
+- `Tools > JSON Validator`: validates JSON and JSON schema documents from open editor tabs, selections, or chosen files.
+- `Help > Update Channel Manager`: lets the user choose stable, beta, nightly, or offline update channels with release notes and rollback plan.
+- `Help > Diagnostics Bundle`: creates a reviewed and redacted support bundle.
+- `Help > Privacy Center`: shows install, feedback, error, update, and diagnostics data flows.
 
 ## Window And Tab Policy
 
@@ -934,12 +963,21 @@ JDeveloper importer:
 - Detect `.jws`, `.jpr`, `.jpx`, Ant/Maven/Gradle files, source roots, libraries, deployment descriptors, application/module grouping, data source references, and server profile hints.
 - Convert application and project files into an mEditor workspace with modules, Java/JVM tasks, web deployment descriptors, SQL/database resources, and migration notes for unresolved proprietary settings.
 
+Visual Studio importer:
+
+- Detect `.sln`, `.csproj`, `.vbproj`, `.fsproj`, `.vcxproj`, `.vcproj`, `.sqlproj`, `.dbproj`, `.shproj`, `.esproj`, `.njsproj`, `.wixproj`, `.props`, `.targets`, and `.filters` files.
+- Convert solution projects into an mEditor major project with sub-projects.
+- Map MSBuild configurations, platforms, properties, imports, references, package references, source roots, generated output folders, build profiles, and debug profiles.
+- Preserve C++ `.filters` as virtual folders without moving physical source files.
+- Mark unresolved SDKs, missing Visual Studio workloads, missing NuGet restore state, and unsupported project settings in the import report.
+
 Importer rules:
 
 - Never rewrite the original project during import unless the user explicitly chooses an in-place migration.
 - Create `.meditor/workspace.toml` and `.meditor/import-report.md` beside the workspace or in a user-selected metadata folder.
 - Record every detected source root, dependency, task, warning, unsupported setting, and manual follow-up.
 - Offer `Import As-Is`, `Import With Local Metadata`, and `Convert To mEditor Workspace` modes.
+- Never require Visual Studio itself to be installed for basic metadata import; if a build/debug action needs MSBuild, .NET SDK, C++ Build Tools, NuGet, or another executable, route it through the standard mEditor executable detection/configuration flow.
 
 ## Language Support Matrix
 
@@ -1100,7 +1138,7 @@ Checked on 2026-05-18 in the current machine:
 5. Port the DevOps desktop database workbench behavior into Rust connectors and SQL Developer-style UI panels.
 6. Add DBA Workshop JDBC driver manager, DBA Panel, ER diagrams, schema compare, data compare, DDL generator, migration runner, and explain-plan visualizer.
 7. Implement SSH Terminus as a standalone grouped, tabbed SSH terminal manager and expose `Tools > DBA Workshop` plus `Tools > SSH Terminus`.
-8. Add NetBeans, Eclipse, and JDeveloper importers with import reports and mEditor workspace metadata.
+8. Add NetBeans, Eclipse, JDeveloper, and Visual Studio importers with import reports and mEditor workspace metadata.
 9. Add framework wizards and project templates for Rust, JavaScript/TypeScript, PHP, Python, Java/JVM, R, Julia, database projects, CLI tools, and web apps.
 10. Add DAP debugging, Test Explorer, coverage reports, package/dependency manager, dependency/security scanner, embedded Code Security Analyzer, CVSS Repository with SQLite auto-update, SBOM, and result exports.
 11. Add AI/ML Assistant, PDF knowledge ingestion, retraining/fine-tuning job control, secure context retrieval, citation-backed answers, and approval-gated code edit previews.

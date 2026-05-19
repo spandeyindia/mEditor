@@ -13,19 +13,24 @@ meditor-core = { path = "../meditor-core" }
 meditor-cvss-repository = { path = "../meditor-cvss-repository" }
 meditor-delivery-automation = { path = "../meditor-delivery-automation" }
 meditor-deployment-docs = { path = "../meditor-deployment-docs" }
+meditor-extension-sdk = { path = "../meditor-extension-sdk" }
 meditor-governance = { path = "../meditor-governance" }
 meditor-installation-metrics = { path = "../meditor-installation-metrics" }
 meditor-local-bug-repository = { path = "../meditor-local-bug-repository" }
 meditor-packaging = { path = "../meditor-packaging" }
+meditor-pilot-hardening = { path = "../meditor-pilot-hardening" }
 meditor-platform = { path = "../meditor-platform" }
+meditor-project-importers = { path = "../meditor-project-importers" }
 meditor-project-workspace = { path = "../meditor-project-workspace" }
 meditor-sdlc = { path = "../meditor-sdlc" }
 meditor-setup = { path = "../meditor-setup" }
 meditor-shell = { path = "../meditor-shell" }
 meditor-toolchains = { path = "../meditor-toolchains" }
 meditor-uml-modeling = { path = "../meditor-uml-modeling" }
+meditor-validators = { path = "../meditor-validators" }
 meditor-workbench = { path = "../meditor-workbench" }
 meditor-workspace-safety = { path = "../meditor-workspace-safety" }
+meditor-workspace-indexer = { path = "../meditor-workspace-indexer" }
 
 [[bin]]
 name = "meditor"

@@ -49,6 +49,11 @@ pub fn ver_2_1_modules() -> Vec<WorkbenchModule> {
             WorkbenchArea::FileMenu,
         ),
         module(
+            "projectImporters",
+            "Project Importers",
+            WorkbenchArea::FileMenu,
+        ),
+        module(
             "fileExplorer",
             "File Explorer",
             WorkbenchArea::LeftNavigator,
@@ -80,6 +85,14 @@ pub fn ver_2_1_modules() -> Vec<WorkbenchModule> {
             "Database Migration",
             WorkbenchArea::ToolsMenu,
         ),
+        module("extensionSdk", "Extension SDK", WorkbenchArea::ToolsMenu),
+        module(
+            "workspaceIndexer",
+            "Workspace Indexer",
+            WorkbenchArea::ToolsMenu,
+        ),
+        module("xmlValidator", "XML Validator", WorkbenchArea::ToolsMenu),
+        module("jsonValidator", "JSON Validator", WorkbenchArea::ToolsMenu),
         module(
             "keymapMigration",
             "Keymaps And Imports",
@@ -186,6 +199,17 @@ pub fn ver_2_1_modules() -> Vec<WorkbenchModule> {
             "Feedback And Bugs",
             WorkbenchArea::ToolsMenu,
         ),
+        module(
+            "updateChannelManager",
+            "Update Channel Manager",
+            WorkbenchArea::HelpMenu,
+        ),
+        module(
+            "diagnosticsBundle",
+            "Diagnostics Bundle",
+            WorkbenchArea::HelpMenu,
+        ),
+        module("privacyCenter", "Privacy Center", WorkbenchArea::HelpMenu),
         module("projectAbout", "About Project", WorkbenchArea::HelpMenu),
         module("projectHelp", "Project Help", WorkbenchArea::HelpMenu),
         module(
@@ -226,6 +250,9 @@ pub struct WorkbenchBaseline {
     pub ai_knowledge_formats: usize,
     pub ai_capabilities: usize,
     pub project_import_modes: usize,
+    pub project_import_kinds: usize,
+    pub visual_studio_project_file_kinds: usize,
+    pub visual_studio_import_steps: usize,
     pub project_node_kinds: usize,
     pub planning_item_kinds: usize,
     pub project_workspace_steps: usize,
@@ -289,14 +316,29 @@ pub struct WorkbenchBaseline {
     pub plugin_permissions: usize,
     pub accessibility_features: usize,
     pub keymap_profiles: usize,
+    pub pilot_hardening_capabilities: usize,
+    pub pilot_hardening_workflow_steps: usize,
+    pub update_channels: usize,
+    pub diagnostics_bundle_items: usize,
+    pub privacy_data_flows: usize,
+    pub extension_contribution_kinds: usize,
+    pub extension_sdk_steps: usize,
+    pub workspace_index_kinds: usize,
+    pub workspace_indexer_steps: usize,
+    pub validator_tools: usize,
+    pub validator_workflow_steps: usize,
     pub self_learning_ai_service_enabled: bool,
     pub security_rules: usize,
     pub cvss_update_sources: usize,
 }
 
 impl WorkbenchBaseline {
-    pub fn ver_2_1() -> Self {
+    pub fn ver_2_2() -> Self {
         Self::baseline(ver_2_1_modules())
+    }
+
+    pub fn ver_2_1() -> Self {
+        Self::ver_2_2()
     }
 
     pub fn pre_pilot_ver_2() -> Self {
@@ -324,6 +366,11 @@ impl WorkbenchBaseline {
             ai_knowledge_formats: meditor_ai::supported_knowledge_formats().len(),
             ai_capabilities: meditor_ai::assistant_capabilities().len(),
             project_import_modes: meditor_project_importers::import_modes().len(),
+            project_import_kinds: meditor_project_importers::supported_project_kinds().len(),
+            visual_studio_project_file_kinds:
+                meditor_project_importers::visual_studio_project_file_kinds().len(),
+            visual_studio_import_steps: meditor_project_importers::visual_studio_import_steps()
+                .len(),
             project_node_kinds: meditor_project_workspace::supported_project_node_kinds().len(),
             planning_item_kinds: meditor_project_workspace::supported_planning_items().len(),
             project_workspace_steps: meditor_project_workspace::project_workspace_steps().len(),
@@ -433,6 +480,30 @@ impl WorkbenchBaseline {
             keymap_profiles: meditor_governance::AccessibilityKeyboardPlan::default_plan()
                 .keymap_profiles
                 .len(),
+            pilot_hardening_capabilities:
+                meditor_pilot_hardening::pilot_hardening_capability_names().len(),
+            pilot_hardening_workflow_steps:
+                meditor_pilot_hardening::pilot_hardening_workflow_steps().len(),
+            update_channels: meditor_pilot_hardening::UpdateChannelManagerPlan::default_plan()
+                .channels
+                .len(),
+            diagnostics_bundle_items: meditor_pilot_hardening::DiagnosticsBundlePlan::default_plan(
+            )
+            .included_items
+            .len(),
+            privacy_data_flows: meditor_pilot_hardening::PrivacyCenterPlan::default_plan()
+                .visible_data_flows
+                .len(),
+            extension_contribution_kinds: meditor_extension_sdk::ExtensionSdkPlan::default_plan()
+                .contribution_kinds
+                .len(),
+            extension_sdk_steps: meditor_extension_sdk::extension_sdk_steps().len(),
+            workspace_index_kinds: meditor_workspace_indexer::WorkspaceIndexerPlan::default_plan()
+                .index_kinds
+                .len(),
+            workspace_indexer_steps: meditor_workspace_indexer::workspace_indexer_steps().len(),
+            validator_tools: meditor_validators::validator_tools().len(),
+            validator_workflow_steps: meditor_validators::validator_workflow_steps().len(),
             self_learning_ai_service_enabled:
                 meditor_ai::SelfLearningAiServicePlan::ver_1_contract().embedded_service,
             security_rules: meditor_code_security::seed_rules().len(),
@@ -450,11 +521,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn ver_2_1_workbench_includes_key_modules() {
-        let baseline = WorkbenchBaseline::ver_2_1();
+    fn ver_2_2_workbench_includes_key_modules() {
+        let baseline = WorkbenchBaseline::ver_2_2();
         for id in [
             "fileExplorer",
             "projectWorkspace",
+            "projectImporters",
             "webBrowser",
             "dbaWorkshop",
             "sshTerminus",
@@ -485,25 +557,36 @@ mod tests {
             "cicdGenerator",
             "apiWorkbench",
             "databaseMigration",
+            "extensionSdk",
+            "workspaceIndexer",
+            "xmlValidator",
+            "jsonValidator",
             "workspaceBackupRestore",
             "pluginPermissions",
             "accessibilityKeyboard",
             "auditTrail",
+            "updateChannelManager",
+            "diagnosticsBundle",
+            "privacyCenter",
         ] {
             assert!(baseline.modules.iter().any(|module| module.id == id));
         }
     }
 
     #[test]
-    fn ver_2_1_workbench_defaults_to_same_window_modules() {
-        assert!(WorkbenchBaseline::ver_2_1().all_modules_same_window());
+    fn ver_2_2_workbench_defaults_to_same_window_modules() {
+        assert!(WorkbenchBaseline::ver_2_2().all_modules_same_window());
     }
 
     #[test]
-    fn ver_2_1_workbench_counts_core_models() {
-        let baseline = WorkbenchBaseline::ver_2_1();
-        assert_eq!(baseline.menu_items, 41);
+    fn ver_2_2_workbench_counts_core_models() {
+        let baseline = WorkbenchBaseline::ver_2_2();
+        assert_eq!(baseline.menu_items, 49);
         assert_eq!(baseline.top_right_menu_bar_items, 1);
+        assert_eq!(baseline.project_import_modes, 3);
+        assert_eq!(baseline.project_import_kinds, 4);
+        assert_eq!(baseline.visual_studio_project_file_kinds, 13);
+        assert_eq!(baseline.visual_studio_import_steps, 6);
         assert!(baseline.project_node_kinds >= 7);
         assert!(baseline.planning_item_kinds >= 12);
         assert!(baseline.project_workspace_steps >= 8);
@@ -551,6 +634,17 @@ mod tests {
         assert_eq!(baseline.plugin_permissions, 9);
         assert_eq!(baseline.accessibility_features, 7);
         assert_eq!(baseline.keymap_profiles, 7);
+        assert_eq!(baseline.pilot_hardening_capabilities, 3);
+        assert_eq!(baseline.pilot_hardening_workflow_steps, 5);
+        assert_eq!(baseline.update_channels, 4);
+        assert_eq!(baseline.diagnostics_bundle_items, 8);
+        assert_eq!(baseline.privacy_data_flows, 6);
+        assert_eq!(baseline.extension_contribution_kinds, 10);
+        assert_eq!(baseline.extension_sdk_steps, 5);
+        assert_eq!(baseline.workspace_index_kinds, 8);
+        assert_eq!(baseline.workspace_indexer_steps, 5);
+        assert_eq!(baseline.validator_tools, 2);
+        assert_eq!(baseline.validator_workflow_steps, 5);
         assert!(baseline.self_learning_ai_service_enabled);
         assert_eq!(baseline.security_rules, 9);
         assert_eq!(baseline.db_dashboard_sections, 7);

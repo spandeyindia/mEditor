@@ -16,11 +16,13 @@ meditor-deployment-docs = { path = "../meditor-deployment-docs" }
 meditor-dependencies = { path = "../meditor-dependencies" }
 meditor-delivery-automation = { path = "../meditor-delivery-automation" }
 meditor-editor = { path = "../meditor-editor" }
+meditor-extension-sdk = { path = "../meditor-extension-sdk" }
 meditor-file-explorer = { path = "../meditor-file-explorer" }
 meditor-governance = { path = "../meditor-governance" }
 meditor-installation-metrics = { path = "../meditor-installation-metrics" }
 meditor-local-bug-repository = { path = "../meditor-local-bug-repository" }
 meditor-packaging = { path = "../meditor-packaging" }
+meditor-pilot-hardening = { path = "../meditor-pilot-hardening" }
 meditor-plugins = { path = "../meditor-plugins" }
 meditor-project-importers = { path = "../meditor-project-importers" }
 meditor-project-workspace = { path = "../meditor-project-workspace" }
@@ -32,8 +34,10 @@ meditor-ssh-terminus = { path = "../meditor-ssh-terminus" }
 meditor-tests = { path = "../meditor-tests" }
 meditor-toolchains = { path = "../meditor-toolchains" }
 meditor-uml-modeling = { path = "../meditor-uml-modeling" }
+meditor-validators = { path = "../meditor-validators" }
 meditor-vcs = { path = "../meditor-vcs" }
 meditor-workspace-safety = { path = "../meditor-workspace-safety" }
+meditor-workspace-indexer = { path = "../meditor-workspace-indexer" }
 
 [lib]
 path = "src/lib.rs"

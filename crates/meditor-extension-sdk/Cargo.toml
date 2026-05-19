@@ -1,0 +1,9 @@
+[package]
+name = "meditor-extension-sdk"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[lib]
+path = "src/lib.rs"

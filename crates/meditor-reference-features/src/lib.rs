@@ -3,6 +3,7 @@ pub enum ReferenceProduct {
     NetBeans,
     Eclipse,
     JDeveloper,
+    VisualStudio,
     VsCode,
     SqlDeveloper,
     SqlDataModeler,
@@ -50,6 +51,13 @@ pub fn reference_feature_catalog() -> Vec<ReferenceFeature> {
                 ReferenceProduct::JDeveloper,
             ],
             "Window > Perspectives",
+        ),
+        feature(
+            "visual-studio-project-import",
+            "Visual Studio solution and MSBuild project import",
+            ReferenceFeatureArea::Workspace,
+            &[ReferenceProduct::VisualStudio],
+            "File > Import Project",
         ),
         feature(
             "command-palette",
@@ -178,6 +186,7 @@ pub fn reference_source_links() -> &'static [(&'static str, &'static str)] {
     &[
         ("NetBeans", "https://netbeans.apache.org/"),
         ("Eclipse", "https://www.eclipse.org/ide/"),
+        ("Visual Studio", "https://visualstudio.microsoft.com/"),
         ("VS Code", "https://code.visualstudio.com/docs"),
         (
             "SQL Developer",
@@ -268,6 +277,7 @@ mod tests {
             ReferenceProduct::NetBeans,
             ReferenceProduct::Eclipse,
             ReferenceProduct::JDeveloper,
+            ReferenceProduct::VisualStudio,
             ReferenceProduct::VsCode,
             ReferenceProduct::SqlDeveloper,
             ReferenceProduct::SqlDataModeler,

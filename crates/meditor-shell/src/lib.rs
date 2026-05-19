@@ -35,6 +35,7 @@ pub fn default_menu_items() -> Vec<MenuItem> {
             "Workspace Backup And Restore",
             "file.workspaceBackupRestore.open",
         ),
+        item("File", "Import Project", "file.importProject.open"),
         item("Source", "Refactor", "source.refactor.open"),
         item("Source", "Reformat", "source.reformat"),
         item("Run", "Tasks", "run.tasks.open"),
@@ -60,6 +61,10 @@ pub fn default_menu_items() -> Vec<MenuItem> {
             "Database Migration",
             "tools.databaseMigration.open",
         ),
+        item("Tools", "Extension SDK", "tools.extensionSdk.open"),
+        item("Tools", "Workspace Indexer", "tools.workspaceIndexer.open"),
+        item("Tools", "XML Validator", "tools.xmlValidator.open"),
+        item("Tools", "JSON Validator", "tools.jsonValidator.open"),
         item(
             "Tools",
             "Code Security Analyzer",
@@ -119,6 +124,13 @@ pub fn default_menu_items() -> Vec<MenuItem> {
         item("Help", "Project Help", "help.projectHelp.open"),
         item("Help", "About mEditor", "help.about.open"),
         item("Help", "Check For Updates", "help.about.checkForUpdates"),
+        item(
+            "Help",
+            "Update Channel Manager",
+            "help.updateChannelManager.open",
+        ),
+        item("Help", "Diagnostics Bundle", "help.diagnosticsBundle.open"),
+        item("Help", "Privacy Center", "help.privacyCenter.open"),
         item("Report", "Reports", "report.center.open"),
         item("Report", "Audit Trail", "report.auditTrail.open"),
     ]
@@ -171,6 +183,9 @@ mod tests {
             .any(|item| item.menu == "File" && item.label == "Workspace Backup And Restore"));
         assert!(menu
             .iter()
+            .any(|item| item.menu == "File" && item.label == "Import Project"));
+        assert!(menu
+            .iter()
             .any(|item| item.menu == "Source" && item.label == "Refactor"));
         assert!(menu
             .iter()
@@ -199,6 +214,18 @@ mod tests {
         assert!(menu
             .iter()
             .any(|item| item.menu == "Tools" && item.label == "Database Migration"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Tools" && item.label == "Extension SDK"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Tools" && item.label == "Workspace Indexer"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Tools" && item.label == "XML Validator"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Tools" && item.label == "JSON Validator"));
         assert!(menu
             .iter()
             .any(|item| item.menu == "Window" && item.label == "Perspectives"));
@@ -247,6 +274,15 @@ mod tests {
         assert!(menu
             .iter()
             .any(|item| item.menu == "Help" && item.label == "Check For Updates"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Help" && item.label == "Update Channel Manager"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Help" && item.label == "Diagnostics Bundle"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Help" && item.label == "Privacy Center"));
         assert!(menu
             .iter()
             .any(|item| item.menu == "Report" && item.label == "Reports"));
