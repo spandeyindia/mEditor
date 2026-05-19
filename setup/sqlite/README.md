@@ -1,6 +1,6 @@
 # mEditor SQLite Setup
 
-This setup folder provides the Ver 2 pre-pilot SQLite setup option for the mEditor CVSS repository and Code Security Analyzer data structures.
+This setup folder provides the Ver 2.1 SQLite setup option for the mEditor CVSS repository and Code Security Analyzer data structures.
 
 ## What It Creates
 

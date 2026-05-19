@@ -14,8 +14,10 @@ meditor-cvss-repository = { path = "../meditor-cvss-repository" }
 meditor-db-workbench = { path = "../meditor-db-workbench" }
 meditor-deployment-docs = { path = "../meditor-deployment-docs" }
 meditor-dependencies = { path = "../meditor-dependencies" }
+meditor-delivery-automation = { path = "../meditor-delivery-automation" }
 meditor-editor = { path = "../meditor-editor" }
 meditor-file-explorer = { path = "../meditor-file-explorer" }
+meditor-governance = { path = "../meditor-governance" }
 meditor-installation-metrics = { path = "../meditor-installation-metrics" }
 meditor-local-bug-repository = { path = "../meditor-local-bug-repository" }
 meditor-packaging = { path = "../meditor-packaging" }
@@ -31,6 +33,7 @@ meditor-tests = { path = "../meditor-tests" }
 meditor-toolchains = { path = "../meditor-toolchains" }
 meditor-uml-modeling = { path = "../meditor-uml-modeling" }
 meditor-vcs = { path = "../meditor-vcs" }
+meditor-workspace-safety = { path = "../meditor-workspace-safety" }
 
 [lib]
 path = "src/lib.rs"

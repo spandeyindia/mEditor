@@ -11,7 +11,9 @@ meditor-code-security = { path = "../meditor-code-security" }
 meditor-compiler-debugger = { path = "../meditor-compiler-debugger" }
 meditor-core = { path = "../meditor-core" }
 meditor-cvss-repository = { path = "../meditor-cvss-repository" }
+meditor-delivery-automation = { path = "../meditor-delivery-automation" }
 meditor-deployment-docs = { path = "../meditor-deployment-docs" }
+meditor-governance = { path = "../meditor-governance" }
 meditor-installation-metrics = { path = "../meditor-installation-metrics" }
 meditor-local-bug-repository = { path = "../meditor-local-bug-repository" }
 meditor-packaging = { path = "../meditor-packaging" }
@@ -23,6 +25,7 @@ meditor-shell = { path = "../meditor-shell" }
 meditor-toolchains = { path = "../meditor-toolchains" }
 meditor-uml-modeling = { path = "../meditor-uml-modeling" }
 meditor-workbench = { path = "../meditor-workbench" }
+meditor-workspace-safety = { path = "../meditor-workspace-safety" }
 
 [[bin]]
 name = "meditor"

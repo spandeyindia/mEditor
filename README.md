@@ -9,6 +9,7 @@ mEditor is planned as a standalone Rust-based multi-language IDE, code editor, d
 - **Owner:** Sanjay Pandey <s.pandey.india@gmail.com>
 - **Ver 1 baseline:** `1.5.0.0-frozen`, frozen on 2026-05-18.
 - **Ver 2 pre-pilot baseline:** `2.0.0.0-pre-pilot`, frozen on 2026-05-19.
+- **Ver 2.1 baseline:** `2.1.0.0`, added on 2026-05-19.
 - **Implementation direction:** Standalone Rust workspace with reusable crates for editor shell, language tooling, debugger integration, file explorer, embedded browser, database workbench, SSH terminal management, project importers, framework wizards, packaging, and native-image support.
 - **UI direction:** SQL Developer-style desktop workbench with navigator trees, file explorer, tabbed editors, embedded browser tabs, worksheet tabs, result grids, object browser panels, connection profiles, DBA dashboards, task consoles, and a user-controlled same-window tab policy.
 - **Target platforms:** Windows laptops, macOS Intel laptops, macOS Apple Silicon laptops including M4, and Linux laptops.
@@ -58,8 +59,10 @@ mEditor should import NetBeans, Eclipse, and JDeveloper projects by reading thei
 
 Every mEditor-created project must include embedded About Project and Project Help documentation under `.meditor/project/docs`. These project help surfaces open in the same window from the Help menu, are user-editable, and become the standard model for future projects built with mEditor.
 
+Ver 2.1 adds Workspace Trust, Local History and Recovery, Secrets And Credentials, CI/CD Generator, API Workbench, Database Migration, Workspace Backup And Restore, Plugin Permissions, Accessibility And Keyboard, and Audit Trail as built-in same-window workbench capabilities.
+
 See [mEditor_PRODUCT_PLAN.md](docs/mEditor_PRODUCT_PLAN.md) for the detailed architecture, compiler catalog, Rust framework coverage, PHP framework download manifest, and migration phases.
 
 The frozen Ver 1 baseline is recorded in [mEditor_VERSION_1_FREEZE.md](docs/mEditor_VERSION_1_FREEZE.md). Any new major capability after this point should be tracked as a Ver 1 amendment or a Ver 2 candidate.
 
-The Ver 2 pre-pilot baseline is recorded in [mEditor_VER_2_PRE_PILOT_BASELINE.md](docs/mEditor_VER_2_PRE_PILOT_BASELINE.md). The earlier Ver 1 implementation benchmark remains in [mEditor_BASELINE_BENCHMARK.md](docs/mEditor_BASELINE_BENCHMARK.md).
+The current Ver 2.1 baseline is recorded in [mEditor_VER_2_1_BASELINE.md](docs/mEditor_VER_2_1_BASELINE.md). The Ver 2 pre-pilot baseline remains in [mEditor_VER_2_PRE_PILOT_BASELINE.md](docs/mEditor_VER_2_PRE_PILOT_BASELINE.md), and the earlier Ver 1 implementation benchmark remains in [mEditor_BASELINE_BENCHMARK.md](docs/mEditor_BASELINE_BENCHMARK.md).

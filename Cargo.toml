@@ -28,6 +28,9 @@ members = [
     "crates/meditor-plugins",
     "crates/meditor-installation-metrics",
     "crates/meditor-workbench",
+    "crates/meditor-workspace-safety",
+    "crates/meditor-delivery-automation",
+    "crates/meditor-governance",
     "crates/meditor-cli",
 ]
 resolver = "2"

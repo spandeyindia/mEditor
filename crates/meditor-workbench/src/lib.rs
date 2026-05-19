@@ -1,5 +1,6 @@
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum WorkbenchArea {
+    FileMenu,
     LeftNavigator,
     CentralTabs,
     RightSidebar,
@@ -7,6 +8,7 @@ pub enum WorkbenchArea {
     ToolsMenu,
     WindowMenu,
     HelpMenu,
+    ReportMenu,
     SetupMenu,
     Settings,
 }
@@ -20,6 +22,10 @@ pub struct WorkbenchModule {
 }
 
 pub fn pre_pilot_ver_2_modules() -> Vec<WorkbenchModule> {
+    ver_2_1_modules()
+}
+
+pub fn ver_2_1_modules() -> Vec<WorkbenchModule> {
     vec![
         module("editor", "Editor", WorkbenchArea::CentralTabs),
         module(
@@ -31,6 +37,16 @@ pub fn pre_pilot_ver_2_modules() -> Vec<WorkbenchModule> {
             "languageSupportSetup",
             "Programming Language Support",
             WorkbenchArea::SetupMenu,
+        ),
+        module(
+            "localHistoryRecovery",
+            "Local History And Recovery",
+            WorkbenchArea::FileMenu,
+        ),
+        module(
+            "workspaceBackupRestore",
+            "Workspace Backup And Restore",
+            WorkbenchArea::FileMenu,
         ),
         module(
             "fileExplorer",
@@ -57,9 +73,32 @@ pub fn pre_pilot_ver_2_modules() -> Vec<WorkbenchModule> {
             "Templates And Snippets",
             WorkbenchArea::ToolsMenu,
         ),
+        module("cicdGenerator", "CI/CD Generator", WorkbenchArea::ToolsMenu),
+        module("apiWorkbench", "API Workbench", WorkbenchArea::ToolsMenu),
+        module(
+            "databaseMigration",
+            "Database Migration",
+            WorkbenchArea::ToolsMenu,
+        ),
         module(
             "keymapMigration",
             "Keymaps And Imports",
+            WorkbenchArea::Settings,
+        ),
+        module("workspaceTrust", "Workspace Trust", WorkbenchArea::Settings),
+        module(
+            "credentialVault",
+            "Secrets And Credentials",
+            WorkbenchArea::Settings,
+        ),
+        module(
+            "pluginPermissions",
+            "Plugin Permissions",
+            WorkbenchArea::Settings,
+        ),
+        module(
+            "accessibilityKeyboard",
+            "Accessibility And Keyboard",
             WorkbenchArea::Settings,
         ),
         module(
@@ -155,6 +194,7 @@ pub fn pre_pilot_ver_2_modules() -> Vec<WorkbenchModule> {
             WorkbenchArea::ToolsMenu,
         ),
         module("reports", "Reports", WorkbenchArea::ToolsMenu),
+        module("auditTrail", "Audit Trail", WorkbenchArea::ReportMenu),
         module("settings", "Settings", WorkbenchArea::Settings),
     ]
 }
@@ -233,14 +273,34 @@ pub struct WorkbenchBaseline {
     pub report_kinds: usize,
     pub reference_feature_count: usize,
     pub inbuilt_professional_capabilities: usize,
+    pub workspace_safety_capabilities: usize,
+    pub workspace_safety_workflow_steps: usize,
+    pub restricted_trust_capabilities: usize,
+    pub secret_kinds: usize,
+    pub backup_items: usize,
+    pub audit_event_kinds: usize,
+    pub delivery_automation_capabilities: usize,
+    pub delivery_automation_workflow_steps: usize,
+    pub cicd_providers: usize,
+    pub api_protocols: usize,
+    pub database_migration_actions: usize,
+    pub governance_capabilities: usize,
+    pub governance_workflow_steps: usize,
+    pub plugin_permissions: usize,
+    pub accessibility_features: usize,
+    pub keymap_profiles: usize,
     pub self_learning_ai_service_enabled: bool,
     pub security_rules: usize,
     pub cvss_update_sources: usize,
 }
 
 impl WorkbenchBaseline {
+    pub fn ver_2_1() -> Self {
+        Self::baseline(ver_2_1_modules())
+    }
+
     pub fn pre_pilot_ver_2() -> Self {
-        Self::baseline(pre_pilot_ver_2_modules())
+        Self::ver_2_1()
     }
 
     pub fn frozen_ver_1() -> Self {
@@ -331,6 +391,48 @@ impl WorkbenchBaseline {
             reference_feature_count: meditor_reference_features::reference_feature_catalog().len(),
             inbuilt_professional_capabilities:
                 meditor_reference_features::inbuilt_professional_ide_capabilities().len(),
+            workspace_safety_capabilities:
+                meditor_workspace_safety::workspace_safety_capability_names().len(),
+            workspace_safety_workflow_steps:
+                meditor_workspace_safety::workspace_safety_workflow_steps().len(),
+            restricted_trust_capabilities:
+                meditor_workspace_safety::WorkspaceTrustPolicy::default_policy()
+                    .restricted_capabilities
+                    .len(),
+            secret_kinds: meditor_workspace_safety::CredentialVaultPlan::default_plan()
+                .supported_secret_kinds
+                .len(),
+            backup_items: meditor_workspace_safety::WorkspaceBackupRestorePlan::default_plan()
+                .includes
+                .len(),
+            audit_event_kinds: meditor_workspace_safety::AuditTrailPlan::default_plan()
+                .supported_event_kinds
+                .len(),
+            delivery_automation_capabilities:
+                meditor_delivery_automation::delivery_automation_capability_names().len(),
+            delivery_automation_workflow_steps:
+                meditor_delivery_automation::delivery_automation_workflow_steps().len(),
+            cicd_providers: meditor_delivery_automation::CicdGeneratorPlan::default_plan()
+                .providers
+                .len(),
+            api_protocols: meditor_delivery_automation::ApiWorkbenchPlan::default_plan()
+                .protocols
+                .len(),
+            database_migration_actions:
+                meditor_delivery_automation::DatabaseMigrationPlan::default_plan()
+                    .actions
+                    .len(),
+            governance_capabilities: meditor_governance::governance_capability_names().len(),
+            governance_workflow_steps: meditor_governance::governance_workflow_steps().len(),
+            plugin_permissions: meditor_governance::PluginPermissionModel::default_model()
+                .supported_permissions
+                .len(),
+            accessibility_features: meditor_governance::AccessibilityKeyboardPlan::default_plan()
+                .accessibility_features
+                .len(),
+            keymap_profiles: meditor_governance::AccessibilityKeyboardPlan::default_plan()
+                .keymap_profiles
+                .len(),
             self_learning_ai_service_enabled:
                 meditor_ai::SelfLearningAiServicePlan::ver_1_contract().embedded_service,
             security_rules: meditor_code_security::seed_rules().len(),
@@ -348,8 +450,8 @@ mod tests {
     use super::*;
 
     #[test]
-    fn pre_pilot_workbench_includes_key_ver_2_modules() {
-        let baseline = WorkbenchBaseline::pre_pilot_ver_2();
+    fn ver_2_1_workbench_includes_key_modules() {
+        let baseline = WorkbenchBaseline::ver_2_1();
         for id in [
             "fileExplorer",
             "projectWorkspace",
@@ -377,20 +479,30 @@ mod tests {
             "feedbackAndBugs",
             "projectAbout",
             "projectHelp",
+            "workspaceTrust",
+            "localHistoryRecovery",
+            "credentialVault",
+            "cicdGenerator",
+            "apiWorkbench",
+            "databaseMigration",
+            "workspaceBackupRestore",
+            "pluginPermissions",
+            "accessibilityKeyboard",
+            "auditTrail",
         ] {
             assert!(baseline.modules.iter().any(|module| module.id == id));
         }
     }
 
     #[test]
-    fn pre_pilot_workbench_defaults_to_same_window_modules() {
-        assert!(WorkbenchBaseline::pre_pilot_ver_2().all_modules_same_window());
+    fn ver_2_1_workbench_defaults_to_same_window_modules() {
+        assert!(WorkbenchBaseline::ver_2_1().all_modules_same_window());
     }
 
     #[test]
-    fn pre_pilot_workbench_counts_core_models() {
-        let baseline = WorkbenchBaseline::pre_pilot_ver_2();
-        assert_eq!(baseline.menu_items, 31);
+    fn ver_2_1_workbench_counts_core_models() {
+        let baseline = WorkbenchBaseline::ver_2_1();
+        assert_eq!(baseline.menu_items, 41);
         assert_eq!(baseline.top_right_menu_bar_items, 1);
         assert!(baseline.project_node_kinds >= 7);
         assert!(baseline.planning_item_kinds >= 12);
@@ -423,6 +535,22 @@ mod tests {
         assert!(baseline.report_kinds >= 6);
         assert!(baseline.reference_feature_count >= 15);
         assert_eq!(baseline.inbuilt_professional_capabilities, 9);
+        assert_eq!(baseline.workspace_safety_capabilities, 5);
+        assert_eq!(baseline.workspace_safety_workflow_steps, 6);
+        assert_eq!(baseline.restricted_trust_capabilities, 8);
+        assert_eq!(baseline.secret_kinds, 6);
+        assert_eq!(baseline.backup_items, 9);
+        assert_eq!(baseline.audit_event_kinds, 10);
+        assert_eq!(baseline.delivery_automation_capabilities, 3);
+        assert_eq!(baseline.delivery_automation_workflow_steps, 5);
+        assert_eq!(baseline.cicd_providers, 6);
+        assert_eq!(baseline.api_protocols, 5);
+        assert_eq!(baseline.database_migration_actions, 8);
+        assert_eq!(baseline.governance_capabilities, 2);
+        assert_eq!(baseline.governance_workflow_steps, 5);
+        assert_eq!(baseline.plugin_permissions, 9);
+        assert_eq!(baseline.accessibility_features, 7);
+        assert_eq!(baseline.keymap_profiles, 7);
         assert!(baseline.self_learning_ai_service_enabled);
         assert_eq!(baseline.security_rules, 9);
         assert_eq!(baseline.db_dashboard_sections, 7);

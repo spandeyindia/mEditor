@@ -25,6 +25,16 @@ pub struct TopRightMenuBarItem {
 pub fn default_menu_items() -> Vec<MenuItem> {
     vec![
         item("File", "New Project", "project.create"),
+        item(
+            "File",
+            "Local History And Recovery",
+            "file.localHistoryRecovery.open",
+        ),
+        item(
+            "File",
+            "Workspace Backup And Restore",
+            "file.workspaceBackupRestore.open",
+        ),
         item("Source", "Refactor", "source.refactor.open"),
         item("Source", "Reformat", "source.reformat"),
         item("Run", "Tasks", "run.tasks.open"),
@@ -42,6 +52,13 @@ pub fn default_menu_items() -> Vec<MenuItem> {
             "Tools",
             "Templates And Snippets",
             "tools.templatesSnippets.open",
+        ),
+        item("Tools", "CI/CD Generator", "tools.cicdGenerator.open"),
+        item("Tools", "API Workbench", "tools.apiWorkbench.open"),
+        item(
+            "Tools",
+            "Database Migration",
+            "tools.databaseMigration.open",
         ),
         item(
             "Tools",
@@ -76,6 +93,26 @@ pub fn default_menu_items() -> Vec<MenuItem> {
             "Keymaps And Imports",
             "settings.keymapsImports.open",
         ),
+        item(
+            "Settings",
+            "Workspace Trust",
+            "settings.workspaceTrust.open",
+        ),
+        item(
+            "Settings",
+            "Secrets And Credentials",
+            "settings.secretsCredentials.open",
+        ),
+        item(
+            "Settings",
+            "Plugin Permissions",
+            "settings.pluginPermissions.open",
+        ),
+        item(
+            "Settings",
+            "Accessibility And Keyboard",
+            "settings.accessibilityKeyboard.open",
+        ),
         item("Help", "Register mEditor", "help.registration.open"),
         item("Help", "Feedback And Bugs", "help.feedback.open"),
         item("Help", "About Project", "help.projectAbout.open"),
@@ -83,6 +120,7 @@ pub fn default_menu_items() -> Vec<MenuItem> {
         item("Help", "About mEditor", "help.about.open"),
         item("Help", "Check For Updates", "help.about.checkForUpdates"),
         item("Report", "Reports", "report.center.open"),
+        item("Report", "Audit Trail", "report.auditTrail.open"),
     ]
 }
 
@@ -127,6 +165,12 @@ mod tests {
             .any(|item| item.menu == "File" && item.label == "New Project"));
         assert!(menu
             .iter()
+            .any(|item| item.menu == "File" && item.label == "Local History And Recovery"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "File" && item.label == "Workspace Backup And Restore"));
+        assert!(menu
+            .iter()
             .any(|item| item.menu == "Source" && item.label == "Refactor"));
         assert!(menu
             .iter()
@@ -148,10 +192,31 @@ mod tests {
             .any(|item| item.menu == "Tools" && item.label == "Templates And Snippets"));
         assert!(menu
             .iter()
+            .any(|item| item.menu == "Tools" && item.label == "CI/CD Generator"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Tools" && item.label == "API Workbench"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Tools" && item.label == "Database Migration"));
+        assert!(menu
+            .iter()
             .any(|item| item.menu == "Window" && item.label == "Perspectives"));
         assert!(menu
             .iter()
             .any(|item| item.menu == "Settings" && item.label == "Keymaps And Imports"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Settings" && item.label == "Workspace Trust"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Settings" && item.label == "Secrets And Credentials"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Settings" && item.label == "Plugin Permissions"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Settings" && item.label == "Accessibility And Keyboard"));
         assert!(menu
             .iter()
             .any(|item| item.menu == "Setup" && item.label == "Programming Language Support"));
@@ -185,6 +250,9 @@ mod tests {
         assert!(menu
             .iter()
             .any(|item| item.menu == "Report" && item.label == "Reports"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Report" && item.label == "Audit Trail"));
         assert!(menu
             .iter()
             .any(|item| item.menu == "Help" && item.label == "Feedback And Bugs"));

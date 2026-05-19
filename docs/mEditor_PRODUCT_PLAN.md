@@ -5,7 +5,7 @@
 - **Name:** mEditor
 - **Expansion:** Multi Editor
 - **Owner:** Sanjay Pandey <s.pandey.india@gmail.com>
-- **Version:** 2.0.0.0-pre-pilot
+- **Version:** 2.1.0.0
 - **Freeze date:** 2026-05-19
 - **Primary implementation language:** Rust
 - **Target platforms:** Windows laptops, macOS Intel laptops, macOS Apple Silicon laptops including M4, and Linux laptops.
@@ -27,12 +27,27 @@ Freeze rules:
 - The Ver 1 freeze record is maintained in `docs/mEditor_VERSION_1_FREEZE.md`.
 - The Ver 1 implementation baseline and benchmark record is maintained in `docs/mEditor_BASELINE_BENCHMARK.md`.
 - The Ver 2 pre-pilot baseline and benchmark record is maintained in `docs/mEditor_VER_2_PRE_PILOT_BASELINE.md`.
+- The Ver 2.1 baseline and benchmark record is maintained in `docs/mEditor_VER_2_1_BASELINE.md`.
 
 ## Ver 2 Pre-Pilot Freeze
 
 Ver 2 is frozen as `2.0.0.0-pre-pilot` on 2026-05-19. This baseline adds the Project Workspace, Project Planner, embedded project About/Help documentation model, professional IDE capability set, SFTP/SCP transfer manager, UML Modeling, Local Bug Repository, Report Center, and pre-pilot Git workspace readiness.
 
 Every mEditor-created project must include embedded About Project and Project Help documentation under `.meditor/project/docs`, exposed from the Help menu and opened in same-window tabs.
+
+## Ver 2.1 Baseline
+
+Ver 2.1 is tracked as `2.1.0.0` on 2026-05-19. It adds Workspace Trust, Local History and Recovery, Secrets And Credentials, CI/CD Generator, API Workbench, Database Migration, Workspace Backup And Restore, Plugin Permissions, Accessibility And Keyboard, and Audit Trail as inbuilt same-window capabilities.
+
+Safety rules:
+
+- Unknown workspaces open as Restricted until the user trusts them.
+- Restricted workspaces disable scripts, auto-builds, terminals, network calls, database/SSH connections, AI code execution, and plugin activation.
+- Local History snapshots file saves and project metadata and supports crash recovery and previous-state restore.
+- Secret values belong in the OS keychain or equivalent secure store, not in plain JSON.
+- Backups exclude raw secrets and use preview plus rollback for restore.
+- Plugin permissions are deny-by-default and logged to the local audit trail.
+- Accessibility and keyboard compatibility are first-class requirements, not optional polish.
 
 ## Standalone Boundary
 

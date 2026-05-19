@@ -49,6 +49,18 @@ fn main() -> ExitCode {
             print_about_help();
             ExitCode::SUCCESS
         }
+        Some("ver21-safety") => {
+            print_ver21_safety();
+            ExitCode::SUCCESS
+        }
+        Some("ver21-delivery") => {
+            print_ver21_delivery();
+            ExitCode::SUCCESS
+        }
+        Some("ver21-governance") => {
+            print_ver21_governance();
+            ExitCode::SUCCESS
+        }
         Some("init-sqlite") => {
             let working_folder = args.next().unwrap_or_else(|| ".".to_string());
             init_sqlite(&working_folder)
@@ -74,7 +86,7 @@ fn print_status() {
     let launcher_plan = meditor_packaging::GenericJarPackagingPlan::ver_1_default();
     let scanner = meditor_code_security::CodeSecurityScanner::with_seed_rules();
     let repo_layout = meditor_cvss_repository::RepositoryLayout::under_working_folder(".");
-    let workbench = meditor_workbench::WorkbenchBaseline::pre_pilot_ver_2();
+    let workbench = meditor_workbench::WorkbenchBaseline::ver_2_1();
     let rest_config = meditor_installation_metrics::BackendEndpointConfig::oracle_apex_default();
 
     println!(
@@ -84,7 +96,10 @@ fn print_status() {
     );
     println!("version schema: {}", meditor_core::VERSION_SCHEMA);
     println!("current platform: {:?} {:?}", platform.os, platform.arch);
-    println!("Ver 2 laptop target: {}", platform.is_ver_1_laptop_target());
+    println!(
+        "Ver 2.1 laptop target: {}",
+        platform.is_ver_1_laptop_target()
+    );
     println!(
         "default menu items: {}",
         meditor_shell::default_menu_items().len()
@@ -233,6 +248,49 @@ fn print_status() {
     );
     println!("report kinds: {}", workbench.report_kinds);
     println!(
+        "workspace safety capabilities: {}",
+        workbench.workspace_safety_capabilities
+    );
+    println!(
+        "workspace safety workflow steps: {}",
+        workbench.workspace_safety_workflow_steps
+    );
+    println!(
+        "restricted trust capabilities: {}",
+        workbench.restricted_trust_capabilities
+    );
+    println!("secret kinds: {}", workbench.secret_kinds);
+    println!("workspace backup items: {}", workbench.backup_items);
+    println!("audit event kinds: {}", workbench.audit_event_kinds);
+    println!(
+        "delivery automation capabilities: {}",
+        workbench.delivery_automation_capabilities
+    );
+    println!(
+        "delivery automation workflow steps: {}",
+        workbench.delivery_automation_workflow_steps
+    );
+    println!("CI/CD providers: {}", workbench.cicd_providers);
+    println!("API protocols: {}", workbench.api_protocols);
+    println!(
+        "database migration actions: {}",
+        workbench.database_migration_actions
+    );
+    println!(
+        "governance capabilities: {}",
+        workbench.governance_capabilities
+    );
+    println!(
+        "governance workflow steps: {}",
+        workbench.governance_workflow_steps
+    );
+    println!("plugin permissions: {}", workbench.plugin_permissions);
+    println!(
+        "accessibility features: {}",
+        workbench.accessibility_features
+    );
+    println!("keymap profiles: {}", workbench.keymap_profiles);
+    println!(
         "self-learning AI service contract enabled: {}",
         workbench.self_learning_ai_service_enabled
     );
@@ -249,7 +307,7 @@ fn print_status() {
 
 fn print_help() {
     println!("mEditor command line");
-    println!("  meditor                 Show current Ver 2 pre-pilot scaffold status");
+    println!("  meditor                 Show current Ver 2.1 scaffold status");
     println!("  meditor scan-file PATH  Run seed Code Security Analyzer rules on one file");
     println!("  meditor cvss-schema     Print the local SQLite CVSS repository schema");
     println!("  meditor sqlite-setup    Show SQLite setup files and commands");
@@ -264,8 +322,104 @@ fn print_help() {
     println!("  meditor project-planner");
     println!("                          Show major project, sub-project, portfolio planning, and planner-to-project contract");
     println!("  meditor about-help      Show embedded About Project and Project Help model");
+    println!(
+        "  meditor ver21-safety    Show Workspace Trust, history, vault, backup, and audit model"
+    );
+    println!("  meditor ver21-delivery  Show CI/CD, API Workbench, and database migration model");
+    println!("  meditor ver21-governance");
+    println!("                          Show plugin permissions, accessibility, and keymap model");
     println!("  meditor init-sqlite [WORKING_FOLDER]");
     println!("                          Create SQLite data structures using sqlite3 on PATH");
+}
+
+fn print_ver21_safety() {
+    let trust = meditor_workspace_safety::WorkspaceTrustPolicy::default_policy();
+    let history = meditor_workspace_safety::LocalHistoryRecoveryPlan::default_plan();
+    let vault = meditor_workspace_safety::CredentialVaultPlan::default_plan();
+    let backup = meditor_workspace_safety::WorkspaceBackupRestorePlan::default_plan();
+    let audit = meditor_workspace_safety::AuditTrailPlan::default_plan();
+
+    println!("mEditor Ver 2.1 Workspace Safety");
+    println!("workspace trust menu: {}", trust.menu_path);
+    println!(
+        "unknown project default trust: {:?}",
+        trust.default_level_for_unknown_projects
+    );
+    println!(
+        "restricted capabilities: {}",
+        trust.restricted_capabilities.len()
+    );
+    println!("local history menu: {}", history.menu_path);
+    println!("snapshot folder: {}", history.snapshot_folder);
+    println!("credential vault menu: {}", vault.menu_path);
+    println!("uses OS keychain: {}", vault.uses_os_keychain);
+    println!(
+        "stores secret values in JSON: {}",
+        vault.stores_secret_values_in_json
+    );
+    println!("backup menu: {}", backup.menu_path);
+    println!("backup items: {}", backup.includes.len());
+    println!(
+        "backup excludes raw secrets: {}",
+        backup.excludes_raw_secrets
+    );
+    println!("audit menu: {}", audit.menu_path);
+    println!("audit event kinds: {}", audit.supported_event_kinds.len());
+    println!("workflow steps:");
+    for step in meditor_workspace_safety::workspace_safety_workflow_steps() {
+        println!("  {step}");
+    }
+}
+
+fn print_ver21_delivery() {
+    let cicd = meditor_delivery_automation::CicdGeneratorPlan::default_plan();
+    let api = meditor_delivery_automation::ApiWorkbenchPlan::default_plan();
+    let migration = meditor_delivery_automation::DatabaseMigrationPlan::default_plan();
+
+    println!("mEditor Ver 2.1 Delivery Automation");
+    println!("CI/CD menu: {}", cicd.menu_path);
+    println!("CI/CD providers: {}", cicd.providers.len());
+    println!("asks before overwrite: {}", cicd.asks_before_overwrite);
+    println!("API Workbench menu: {}", api.menu_path);
+    println!("API protocols: {}", api.protocols.len());
+    println!("links to project docs: {}", api.links_to_project_docs);
+    println!("Database Migration menu: {}", migration.menu_path);
+    println!("migration actions: {}", migration.actions.len());
+    println!(
+        "requires backup before apply: {}",
+        migration.requires_backup_prompt_before_apply
+    );
+    println!("workflow steps:");
+    for step in meditor_delivery_automation::delivery_automation_workflow_steps() {
+        println!("  {step}");
+    }
+}
+
+fn print_ver21_governance() {
+    let permissions = meditor_governance::PluginPermissionModel::default_model();
+    let accessibility = meditor_governance::AccessibilityKeyboardPlan::default_plan();
+
+    println!("mEditor Ver 2.1 Governance And Accessibility");
+    println!("plugin permissions menu: {}", permissions.menu_path);
+    println!(
+        "supported plugin permissions: {}",
+        permissions.supported_permissions.len()
+    );
+    println!("deny by default: {}", permissions.deny_by_default);
+    println!(
+        "logs decisions to audit trail: {}",
+        permissions.logs_decisions_to_audit_trail
+    );
+    println!("accessibility menu: {}", accessibility.menu_path);
+    println!(
+        "accessibility features: {}",
+        accessibility.accessibility_features.len()
+    );
+    println!("keymap profiles: {}", accessibility.keymap_profiles.len());
+    println!("workflow steps:");
+    for step in meditor_governance::governance_workflow_steps() {
+        println!("  {step}");
+    }
 }
 
 fn print_about_help() {
