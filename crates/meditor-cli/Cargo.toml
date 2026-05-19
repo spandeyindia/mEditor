@@ -1,0 +1,29 @@
+[package]
+name = "meditor-cli"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+meditor-ai = { path = "../meditor-ai" }
+meditor-code-security = { path = "../meditor-code-security" }
+meditor-compiler-debugger = { path = "../meditor-compiler-debugger" }
+meditor-core = { path = "../meditor-core" }
+meditor-cvss-repository = { path = "../meditor-cvss-repository" }
+meditor-deployment-docs = { path = "../meditor-deployment-docs" }
+meditor-installation-metrics = { path = "../meditor-installation-metrics" }
+meditor-local-bug-repository = { path = "../meditor-local-bug-repository" }
+meditor-packaging = { path = "../meditor-packaging" }
+meditor-platform = { path = "../meditor-platform" }
+meditor-project-workspace = { path = "../meditor-project-workspace" }
+meditor-sdlc = { path = "../meditor-sdlc" }
+meditor-setup = { path = "../meditor-setup" }
+meditor-shell = { path = "../meditor-shell" }
+meditor-toolchains = { path = "../meditor-toolchains" }
+meditor-uml-modeling = { path = "../meditor-uml-modeling" }
+meditor-workbench = { path = "../meditor-workbench" }
+
+[[bin]]
+name = "meditor"
+path = "src/main.rs"

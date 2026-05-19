@@ -1,0 +1,13 @@
+[package]
+name = "meditor-setup"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+meditor-cvss-repository = { path = "../meditor-cvss-repository" }
+meditor-toolchains = { path = "../meditor-toolchains" }
+
+[lib]
+path = "src/lib.rs"

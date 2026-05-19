@@ -1,0 +1,33 @@
+# Rust build output
+/target/
+
+# Local operating-system files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# mEditor local runtime/workspace state
+/.meditor/
+*.sqlite
+*.sqlite-*
+*.db
+*.db-*
+
+# Generated package/build artifacts
+/build/
+/dist/
+/out/
+/tmp/
+/logs/
+*.log
+
+# IDE/editor local settings
+/.idea/
+/.vscode/
+*.swp
+*.swo
+
+# Java/JAR temporary output used by early launcher experiments
+*.class
+*.tmp
+hs_err_pid*

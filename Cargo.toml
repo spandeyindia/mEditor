@@ -1,0 +1,39 @@
+[workspace]
+members = [
+    "crates/meditor-core",
+    "crates/meditor-platform",
+    "crates/meditor-shell",
+    "crates/meditor-editor",
+    "crates/meditor-file-explorer",
+    "crates/meditor-browser",
+    "crates/meditor-packaging",
+    "crates/meditor-setup",
+    "crates/meditor-toolchains",
+    "crates/meditor-sdlc",
+    "crates/meditor-vcs",
+    "crates/meditor-cvss-repository",
+    "crates/meditor-code-security",
+    "crates/meditor-local-bug-repository",
+    "crates/meditor-compiler-debugger",
+    "crates/meditor-db-workbench",
+    "crates/meditor-ssh-terminus",
+    "crates/meditor-deployment-docs",
+    "crates/meditor-uml-modeling",
+    "crates/meditor-ai",
+    "crates/meditor-project-importers",
+    "crates/meditor-project-workspace",
+    "crates/meditor-reference-features",
+    "crates/meditor-tests",
+    "crates/meditor-dependencies",
+    "crates/meditor-plugins",
+    "crates/meditor-installation-metrics",
+    "crates/meditor-workbench",
+    "crates/meditor-cli",
+]
+resolver = "2"
+
+[workspace.package]
+edition = "2021"
+authors = ["Sanjay Pandey <s.pandey.india@gmail.com>"]
+license = "LicenseRef-mEditor-Freeware-EULA"
+repository = ""

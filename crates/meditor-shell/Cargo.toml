@@ -1,0 +1,13 @@
+[package]
+name = "meditor-shell"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+meditor-core = { path = "../meditor-core" }
+
+[lib]
+path = "src/lib.rs"
+

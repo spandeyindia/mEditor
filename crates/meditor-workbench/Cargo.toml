@@ -1,0 +1,36 @@
+[package]
+name = "meditor-workbench"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+meditor-ai = { path = "../meditor-ai" }
+meditor-browser = { path = "../meditor-browser" }
+meditor-code-security = { path = "../meditor-code-security" }
+meditor-compiler-debugger = { path = "../meditor-compiler-debugger" }
+meditor-cvss-repository = { path = "../meditor-cvss-repository" }
+meditor-db-workbench = { path = "../meditor-db-workbench" }
+meditor-deployment-docs = { path = "../meditor-deployment-docs" }
+meditor-dependencies = { path = "../meditor-dependencies" }
+meditor-editor = { path = "../meditor-editor" }
+meditor-file-explorer = { path = "../meditor-file-explorer" }
+meditor-installation-metrics = { path = "../meditor-installation-metrics" }
+meditor-local-bug-repository = { path = "../meditor-local-bug-repository" }
+meditor-packaging = { path = "../meditor-packaging" }
+meditor-plugins = { path = "../meditor-plugins" }
+meditor-project-importers = { path = "../meditor-project-importers" }
+meditor-project-workspace = { path = "../meditor-project-workspace" }
+meditor-reference-features = { path = "../meditor-reference-features" }
+meditor-sdlc = { path = "../meditor-sdlc" }
+meditor-setup = { path = "../meditor-setup" }
+meditor-shell = { path = "../meditor-shell" }
+meditor-ssh-terminus = { path = "../meditor-ssh-terminus" }
+meditor-tests = { path = "../meditor-tests" }
+meditor-toolchains = { path = "../meditor-toolchains" }
+meditor-uml-modeling = { path = "../meditor-uml-modeling" }
+meditor-vcs = { path = "../meditor-vcs" }
+
+[lib]
+path = "src/lib.rs"

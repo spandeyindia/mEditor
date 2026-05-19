@@ -1,0 +1,13 @@
+[package]
+name = "meditor-compiler-debugger"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+meditor-ai = { path = "../meditor-ai" }
+meditor-local-bug-repository = { path = "../meditor-local-bug-repository" }
+
+[lib]
+path = "src/lib.rs"
