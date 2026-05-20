@@ -5,7 +5,7 @@
 - **Name:** mEditor
 - **Expansion:** Multi Editor
 - **Owner:** Sanjay Pandey <s.pandey.india@gmail.com>
-- **Version:** 2.2.0.15
+- **Version:** 2.2.0.16
 - **Frozen design version:** 2.2.0.0
 - **Freeze date:** 2026-05-19
 - **Freeze status:** Ver 2.2 design frozen
@@ -88,6 +88,8 @@ Build `2.2.0.13` adds runtime-completion hardening for the remaining pre-pilot g
 Build `2.2.0.14` adds production-hardening implementation for the known readiness gaps: terminal sessions expose PTY-backed launch status where the platform `script` wrapper is available, JDBC metadata browsing covers schemas, catalogs, indexes, keys, procedures, type information, and privileges, DBA probes cover common Oracle/PostgreSQL/MySQL/SQL Server health queries, AI/ML Assistant fits a local TF-IDF retrieval/ranking model with a training report, and the repository includes macOS/Linux/Windows CI validation assets.
 
 Build `2.2.0.15` fixes the packaged macOS `.app` launch workflow by resolving a writable startup workspace when the OS starts the app with `/` as current directory, so EULA acceptance and local `.meditor` state are not written to the read-only filesystem root.
+
+Build `2.2.0.16` makes menu activation functional across the workbench: every menu command has a same-window surface and opening it runs a local Rust-backed workflow or writes a local artifact under `.meditor`, replacing static frozen placeholders with verifiable behavior.
 
 Visual Studio import requirements:
 

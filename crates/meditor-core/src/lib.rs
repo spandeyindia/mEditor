@@ -22,7 +22,8 @@ pub const VER_2_2_DEPENDENCY_INSTALL_BUILD: &str = "2.2.0.12";
 pub const VER_2_2_RUNTIME_COMPLETION_BUILD: &str = "2.2.0.13";
 pub const VER_2_2_PRODUCTION_HARDENING_BUILD: &str = "2.2.0.14";
 pub const VER_2_2_PACKAGED_WORKSPACE_FIX_BUILD: &str = "2.2.0.15";
-pub const CURRENT_BASELINE_VERSION: &str = VER_2_2_PACKAGED_WORKSPACE_FIX_BUILD;
+pub const VER_2_2_MENU_WORKFLOW_BUILD: &str = "2.2.0.16";
+pub const CURRENT_BASELINE_VERSION: &str = VER_2_2_MENU_WORKFLOW_BUILD;
 pub const VERSION_SCHEMA: &str = "Major release.Minor release.Bugfix or enhancement.Build";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -289,10 +290,14 @@ mod tests {
             production_hardening_version.bump_build().to_string(),
             VER_2_2_PACKAGED_WORKSPACE_FIX_BUILD
         );
+        let packaged_workspace_fix_version =
+            AppVersion::from_str(VER_2_2_PACKAGED_WORKSPACE_FIX_BUILD)
+                .expect("Ver 2.2 packaged workspace fix build should parse");
         assert_eq!(
-            CURRENT_BASELINE_VERSION,
-            VER_2_2_PACKAGED_WORKSPACE_FIX_BUILD
+            packaged_workspace_fix_version.bump_build().to_string(),
+            VER_2_2_MENU_WORKFLOW_BUILD
         );
+        assert_eq!(CURRENT_BASELINE_VERSION, VER_2_2_MENU_WORKFLOW_BUILD);
     }
 
     #[test]

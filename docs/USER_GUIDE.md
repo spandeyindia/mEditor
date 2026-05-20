@@ -1,6 +1,6 @@
 # mEditor User Guide
 
-Version: 2.2.0.15
+Version: 2.2.0.16
 
 Owner contact: Sanjay Pandey <s.pandey.india@gmail.com>
 
