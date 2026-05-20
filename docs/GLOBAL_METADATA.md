@@ -3,13 +3,15 @@
 - **Product Name:** mEditor
 - **Product Expansion:** Multi Editor
 - **Short Name:** mEditor
-- **Version:** 2.2.0.0
+- **Version:** 2.2.0.14
+- **Frozen Design Version:** 2.2.0.0
 - **Product License:** mEditor Freeware EULA
 - **License Code:** LicenseRef-mEditor-Freeware-EULA
 - **License File:** mEditor/LICENSE.md
 - **Freeze Date:** 2026-05-19
-- **Freeze Status:** Ver 2.2 implementation baseline.
+- **Freeze Status:** Ver 2.2 design and implementation baseline frozen.
 - **Baseline Benchmark:** docs/mEditor_VER_2_2_BASELINE.md
+- **Design Freeze Record:** docs/mEditor_VER_2_2_DESIGN_FREEZE.md
 - **Versioning Scheme:** Major release.Minor release.Bugfix or enhancement.Build.
 - **Minor Release Rule:** Each feature imported from another app increments the Minor release component.
 - **Build Number Rule:** Every produced build must increment the Build component.
@@ -23,7 +25,7 @@
 - **Copyright:** Sanjay Pandey 2026
 - **External Licensing:** Open-source dependencies remain under their respective upstream licenses.
 - **Internal Licensing:** mEditor Freeware EULA by Sanjay Pandey <s.pandey.india@gmail.com>
-- **Security Classification:** Ver 2.2 implementation baseline.
+- **Security Classification:** Ver 2.2 design and implementation baseline.
 
 ## Change History
 
@@ -79,3 +81,18 @@
 | 48 | 2026-05-19 | Added Ver 2.2 Update Channel Manager, Diagnostics Bundle, Privacy Center, Extension SDK, and Workspace Indexer. | Implementation baseline | AI Assistant / Sanjay Pandey |
 | 49 | 2026-05-19 | Added XML Validator and JSON Validator as separate Tools menu options. | Implementation baseline | AI Assistant / Sanjay Pandey |
 | 50 | 2026-05-19 | Marked mEditor Ver 2.2 baseline as 2.2.0.0. | Versioning | AI Assistant / Sanjay Pandey |
+| 51 | 2026-05-19 | Froze the mEditor Ver 2.2 design contract for the pre-pilot implementation baseline. | Version freeze | AI Assistant / Sanjay Pandey |
+| 52 | 2026-05-19 | Added the mandatory native Rust GUI shell using same-window tabs, menu bar, file explorer, command palette, feedback, about, workbench dashboard, and module surfaces; bumped the build to 2.2.0.1. | Implementation build | AI Assistant / Sanjay Pandey |
+| 53 | 2026-05-19 | Added Rust-backed GUI actions for file open/save, JSON/XML validation, code-security scan, explorer refresh, DBA worksheet dry-run, toolchain detection, SQLite setup preview, project import preview, AI assistant request acknowledgement, feedback preview, diagnostics preview, and update-check preview; bumped the build to 2.2.0.2. | Implementation build | AI Assistant / Sanjay Pandey |
+| 54 | 2026-05-19 | Fixed GUI script escaping so the default dashboard and backend-response panels render, and made top menus mutually exclusive; bumped the build to 2.2.0.3. | Bugfix build | AI Assistant / Sanjay Pandey |
+| 55 | 2026-05-19 | Moved the visible build label from the web menubar to the native title bar and changed the main toolbar to medium icon buttons; bumped the build to 2.2.0.4. | GUI refinement build | AI Assistant / Sanjay Pandey |
+| 56 | 2026-05-19 | Added Rust-backed real-time JSON/XML validation in editor tabs and changed top menus to faster custom toggles; bumped the build to 2.2.0.5. | GUI validation build | AI Assistant / Sanjay Pandey |
+| 57 | 2026-05-19 | Added working New Project metadata/docs scaffold, Import Project report writing, and Source > Reformat for active JSON/XML editor tabs; bumped the build to 2.2.0.6. | Functionality build | AI Assistant / Sanjay Pandey |
+| 58 | 2026-05-19 | Added Source > Vi Editor, file context Vi opening, modal normal/insert/command editing, common Vi commands, and Rust-backed :w save; bumped the build to 2.2.0.7. | Editor functionality build | AI Assistant / Sanjay Pandey |
+| 59 | 2026-05-20 | Added same-window JSON/XML formatter workbench with two-panel editable/upload input and live Rust-formatted output; bumped the build to 2.2.0.8. | Formatter functionality build | AI Assistant / Sanjay Pandey |
+| 60 | 2026-05-20 | Added end-to-end project task workflow with runnable scaffolds, project detection, task execution, compiler output capture, suggestions, and local debug reports; bumped the build to 2.2.0.9. | SDLC workflow build | AI Assistant / Sanjay Pandey |
+| 61 | 2026-05-20 | Completed remaining pre-pilot gaps as guarded first-pass workflows for setup, VCS, DBA SQLite/JDBC profiles, SSH/SFTP, browser, AI knowledge, planner, reports, extension skeletons, workspace indexing, and feedback outbox; bumped the build to 2.2.0.10. | Pre-pilot completion build | AI Assistant / Sanjay Pandey |
+| 62 | 2026-05-21 | Added release-hardening hooks for first-run EULA persistence, OS-backed credential storage, JDBC execution, SSH command tabs, SFTP/SCP queue and transfers, local AI runtime adapter, LSP detection, update-source checks, packaging, and end-user help; bumped the build to 2.2.0.11. | Release hardening build | AI Assistant / Sanjay Pandey |
+| 63 | 2026-05-21 | Added Setup > Verify And Install Dependencies with executable catalog verification, missing dependency status, source URLs, platform package-manager install commands, and user-confirmed install execution; bumped the build to 2.2.0.12. | Dependency installer build | AI Assistant / Sanjay Pandey |
+| 64 | 2026-05-21 | Added persistent terminal sessions, JDBC metadata dashboard/object browsing, local AI knowledge reindexing, guarded rename refactor rollback, debug adapter detection, and cross-platform package audit tooling; bumped the build to 2.2.0.13. | Runtime completion hardening build | AI Assistant / Sanjay Pandey |
+| 65 | 2026-05-21 | Added PTY-aware terminal launch status, richer JDBC metadata and DBA probes, local AI retrieval model fitting with a training report, and macOS/Linux/Windows CI package validation assets; bumped the build to 2.2.0.14. | Production hardening build | AI Assistant / Sanjay Pandey |

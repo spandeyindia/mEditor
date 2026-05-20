@@ -10,8 +10,9 @@ mEditor is planned as a standalone Rust-based multi-language IDE, code editor, d
 - **Ver 1 baseline:** `1.5.0.0-frozen`, frozen on 2026-05-18.
 - **Ver 2 pre-pilot baseline:** `2.0.0.0-pre-pilot`, frozen on 2026-05-19.
 - **Ver 2.1 baseline:** `2.1.0.0`, added on 2026-05-19.
-- **Ver 2.2 baseline:** `2.2.0.0`, added on 2026-05-19.
-- **Implementation direction:** Standalone Rust workspace with reusable crates for editor shell, language tooling, debugger integration, file explorer, embedded browser, database workbench, SSH terminal management, project importers, framework wizards, packaging, and native-image support.
+- **Ver 2.2 baseline:** `2.2.0.0`, added and design-frozen on 2026-05-19.
+- **Current implementation build:** `2.2.0.14`, adds PTY-aware terminal session launch where the platform `script` utility is available, richer JDBC metadata and DBA probes, fitted local AI retrieval model training, and cross-platform CI/package validation assets.
+- **Implementation direction:** Standalone Rust workspace with reusable crates for the native GUI shell, editor shell, language tooling, debugger integration, file explorer, embedded browser, database workbench, SSH terminal management, project importers, framework wizards, packaging, and native-image support.
 - **UI direction:** SQL Developer-style desktop workbench with navigator trees, file explorer, tabbed editors, embedded browser tabs, worksheet tabs, result grids, object browser panels, connection profiles, DBA dashboards, task consoles, and a user-controlled same-window tab policy.
 - **Target platforms:** Windows laptops, macOS Intel laptops, macOS Apple Silicon laptops including M4, and Linux laptops.
 - **Licensing direction:** mEditor starts under the `mEditor Freeware EULA` (`LicenseRef-mEditor-Freeware-EULA`), with optional future open-source relicensing such as GPL v3.0 at owner discretion. Bundled open-source compilers, runtimes, frameworks, and libraries remain under their respective upstream licenses.
@@ -64,8 +65,40 @@ Ver 2.1 adds Workspace Trust, Local History and Recovery, Secrets And Credential
 
 Ver 2.2 adds Visual Studio solution/project import, Update Channel Manager, Diagnostics Bundle, Privacy Center, Extension SDK, Workspace Indexer, XML Validator, and JSON Validator.
 
+Build `2.2.0.2` adds backend behavior behind the GUI for opening and saving workspace files, JSON/XML validation, code security scanning, File Explorer refresh, DBA worksheet dry-run, tooling detection, SQLite setup preview, project import preview, AI assistant request acknowledgement, feedback payload preview, diagnostics preview, and update-check preview.
+
+Build `2.2.0.3` fixes the generated GUI JavaScript so the default dashboard and backend-response panels render, and tightens menu behavior so only one top menu stays open at a time.
+
+Build `2.2.0.4` refines the SQL Developer-style GUI shell by moving the visible version label from the web menubar to the native window title and replacing text toolbar buttons with medium icon buttons.
+
+Build `2.2.0.5` wires real-time validation for JSON/XML-family editor tabs through the Rust backend and replaces browser details-based top menus with faster custom menu toggles.
+
+Build `2.2.0.6` turns the first placeholder surfaces into working actions: New Project writes mEditor metadata/docs/source scaffold, Import Project writes an import report, and Source > Reformat formats active JSON/XML editor tabs in memory before explicit save.
+
+Build `2.2.0.7` adds `Source > Vi Editor` and file context/open-editor actions for a same-window Vi-style modal editor with normal, insert, and command modes, common movement/edit/search commands, and `:w` save through the Rust backend.
+
+Build `2.2.0.8` adds the JSON/XML formatter workbench: Source > Reformat, Tools > JSON Validator, Tools > XML Validator, editor toolbar, and file context menu can open a same-window two-panel formatter with editable/paste/upload input on the left and live Rust-formatted output on the right.
+
+Build `2.2.0.9` completes the first end-user workflow slice: New Project creates runnable Rust/Node/Python/Web scaffolds where applicable, Run > Tasks detects project type, runs known build/debug/test/launch/clean/package profiles inside the workspace, captures stdout/stderr and diagnostics, shows suggestions without modifying source, and writes `.meditor/debug-reports` handover documentation.
+
+Build `2.2.0.10` converts the remaining pre-pilot placeholder modules into guarded usable workflows: one-click SQLite setup, Git/SVN operations, SQLite worksheet execution and JDBC driver profile registration, SSH profile storage and connectivity checks, SFTP/SCP remote listing, same-window iframe browser navigation, AI local knowledge storage, planner item persistence, local bug repository/report listing, extension skeleton generation, workspace indexing, and feedback outbox storage.
+
+Build `2.2.0.11` adds release-hardening implementation hooks: first-run freeware EULA persistence, About license display refresh, robust error dialogs, real OS credential-store integration, Git release-source update checks, JDBC execution through installed Java/JDBC drivers, SSH command tabs, SFTP/SCP queue and transfer execution, local AI runtime adapter, LSP server detection, local package staging, and end-user documentation coverage.
+
+Build `2.2.0.12` adds Setup > Verify And Install Dependencies. It verifies the executable dependency catalog, shows active/missing status, displays package manager commands and source URLs, and runs a selected missing dependency install only after explicit user confirmation.
+
+Build `2.2.0.13` advances the remaining runtime gaps: SSH Terminus now has persistent same-window terminal sessions, DBA Workshop can run JDBC metadata dashboard/object/column browsing, AI/ML Assistant can build a real local knowledge index, Source > Refactor can apply a user-approved rename with rollback backup, debug adapter detection is exposed, and Diagnostics can audit cross-platform package readiness.
+
+Build `2.2.0.14` production-hardens those runtime paths: terminal sessions report PTY-backed status through the platform `script` wrapper where available, DBA Workshop adds richer JDBC metadata browsing and built-in DBA probes for common engines, AI/ML Assistant can fit a local TF-IDF retrieval/ranking model with a training report, and GitHub Actions CI is staged for macOS, Linux, and Windows validation.
+
+The GUI entry point is available through:
+
+```bash
+cargo run -p meditor-gui
+```
+
 See [mEditor_PRODUCT_PLAN.md](docs/mEditor_PRODUCT_PLAN.md) for the detailed architecture, compiler catalog, Rust framework coverage, PHP framework download manifest, and migration phases.
 
 The frozen Ver 1 baseline is recorded in [mEditor_VERSION_1_FREEZE.md](docs/mEditor_VERSION_1_FREEZE.md). Any new major capability after this point should be tracked as a Ver 1 amendment or a Ver 2 candidate.
 
-The current Ver 2.2 baseline is recorded in [mEditor_VER_2_2_BASELINE.md](docs/mEditor_VER_2_2_BASELINE.md). Earlier baselines remain in [mEditor_VER_2_1_BASELINE.md](docs/mEditor_VER_2_1_BASELINE.md), [mEditor_VER_2_PRE_PILOT_BASELINE.md](docs/mEditor_VER_2_PRE_PILOT_BASELINE.md), and [mEditor_BASELINE_BENCHMARK.md](docs/mEditor_BASELINE_BENCHMARK.md).
+The current Ver 2.2 baseline is recorded in [mEditor_VER_2_2_BASELINE.md](docs/mEditor_VER_2_2_BASELINE.md), and the frozen Ver 2.2 design contract is recorded in [mEditor_VER_2_2_DESIGN_FREEZE.md](docs/mEditor_VER_2_2_DESIGN_FREEZE.md). Earlier baselines remain in [mEditor_VER_2_1_BASELINE.md](docs/mEditor_VER_2_1_BASELINE.md), [mEditor_VER_2_PRE_PILOT_BASELINE.md](docs/mEditor_VER_2_PRE_PILOT_BASELINE.md), and [mEditor_BASELINE_BENCHMARK.md](docs/mEditor_BASELINE_BENCHMARK.md).

@@ -581,7 +581,7 @@ mod tests {
     #[test]
     fn ver_2_2_workbench_counts_core_models() {
         let baseline = WorkbenchBaseline::ver_2_2();
-        assert_eq!(baseline.menu_items, 49);
+        assert_eq!(baseline.menu_items, 53);
         assert_eq!(baseline.top_right_menu_bar_items, 1);
         assert_eq!(baseline.project_import_modes, 3);
         assert_eq!(baseline.project_import_kinds, 4);

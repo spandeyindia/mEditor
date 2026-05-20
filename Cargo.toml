@@ -35,6 +35,7 @@ members = [
     "crates/meditor-extension-sdk",
     "crates/meditor-workspace-indexer",
     "crates/meditor-validators",
+    "crates/meditor-gui",
     "crates/meditor-cli",
 ]
 resolver = "2"

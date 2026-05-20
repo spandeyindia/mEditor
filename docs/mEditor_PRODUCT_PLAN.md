@@ -5,8 +5,10 @@
 - **Name:** mEditor
 - **Expansion:** Multi Editor
 - **Owner:** Sanjay Pandey <s.pandey.india@gmail.com>
-- **Version:** 2.2.0.0
+- **Version:** 2.2.0.14
+- **Frozen design version:** 2.2.0.0
 - **Freeze date:** 2026-05-19
+- **Freeze status:** Ver 2.2 design frozen
 - **Primary implementation language:** Rust
 - **Target platforms:** Windows laptops, macOS Intel laptops, macOS Apple Silicon laptops including M4, and Linux laptops.
 - **Primary experience:** Standalone SQL Developer-style IDE and database workbench with a multi-language editor, file explorer, embedded web browser, SDLC toolbar, Git/SVN version control, connection navigator, worksheets, object browser, result grids, task consoles, grouped tabbed SSH terminals, project importers including Visual Studio, framework wizards, code security analysis, AI/ML coding assistance, AI training, spec-to-system design, XML/JSON validation, and toolchain discovery.
@@ -29,6 +31,7 @@ Freeze rules:
 - The Ver 2 pre-pilot baseline and benchmark record is maintained in `docs/mEditor_VER_2_PRE_PILOT_BASELINE.md`.
 - The Ver 2.1 baseline and benchmark record is maintained in `docs/mEditor_VER_2_1_BASELINE.md`.
 - The Ver 2.2 baseline and benchmark record is maintained in `docs/mEditor_VER_2_2_BASELINE.md`.
+- The Ver 2.2 design freeze record is maintained in `docs/mEditor_VER_2_2_DESIGN_FREEZE.md`.
 
 ## Ver 2 Pre-Pilot Freeze
 
@@ -53,6 +56,36 @@ Safety rules:
 ## Ver 2.2 Baseline
 
 Ver 2.2 is tracked as `2.2.0.0` on 2026-05-19. It adds Visual Studio solution/project import, Update Channel Manager, Diagnostics Bundle, Privacy Center, Extension SDK, Workspace Indexer, XML Validator, and JSON Validator.
+
+Ver 2.2 is design-frozen on 2026-05-19. Implementation, tests, packaging, and documentation can continue inside this scope, but new user-visible capability groups, new menu families, new background data collection, or changes to license/privacy/versioning rules require a later version baseline.
+
+The first post-freeze implementation build is `2.2.0.1`, which adds the mandatory native Rust GUI shell. The GUI shell opens the frozen mEditor menu model, file explorer, command palette, feedback surface, about/update surface, workbench dashboard, editor tabs, and module surfaces in the same main window by default.
+
+Build `2.2.0.2` adds Rust-backed GUI actions for immediately verifiable behavior: workspace file open/save, JSON/XML validation, code-security scan, File Explorer refresh, DBA worksheet dry-run, toolchain detection, SQLite setup preview, project import preview, AI assistant request acknowledgement, feedback payload preview, diagnostics preview, and update-check preview.
+
+Build `2.2.0.3` fixes the generated GUI JavaScript that prevented the central dashboard and backend-response panels from rendering, and updates menu behavior so top menus do not stack over each other.
+
+Build `2.2.0.4` moves the visible mEditor version label to the native title bar and changes the main toolbar below the menu to medium icon buttons.
+
+Build `2.2.0.5` adds Rust-backed real-time validation for JSON/XML-family editor tabs and improves top-menu opening speed with custom menu toggles.
+
+Build `2.2.0.6` adds functional New Project scaffold creation, Import Project report writing, and active JSON/XML editor reformatting behind the GUI buttons.
+
+Build `2.2.0.7` adds a same-window Vi-style modal editor under Source, including file/context launch paths, normal/insert/command modes, common Vi movement/edit/search commands, and Rust-backed `:w` save.
+
+Build `2.2.0.8` adds a same-window JSON/XML formatter workbench with a two-panel layout: editable input with normal clipboard paste/copy plus upload on the left, live Rust-backed formatted output on the right, and apply-to-open-editor behavior that remains in memory until the user explicitly saves.
+
+Build `2.2.0.9` completes the first end-to-end project workflow slice by adding runnable scaffolds for new projects, project detection under Run > Tasks, known task execution for build/debug/test/launch/clean/package profiles, stdout/stderr and compiler diagnostic capture, user-controlled suggestions, and saved local debugging handover reports under `.meditor/debug-reports`.
+
+Build `2.2.0.10` completes the remaining pre-pilot readiness gaps as guarded first-pass workflows: one-click SQLite setup, Git/SVN Team actions, DBA SQLite execution with JDBC driver profile registration, SSH profile save/test, SFTP/SCP remote listing, iframe-based same-window browser navigation, AI local knowledge storage, planner item persistence, local bug repository and report listing, Extension SDK skeleton generation, Workspace Indexer output, and feedback outbox storage.
+
+Build `2.2.0.11` adds release-hardening hooks inside the frozen Ver 2.2 scope: first-run EULA gate persistence, refreshed About license display, robust workflow error dialogs, OS-backed credential storage, Update Channel Manager Git tag checks, live JDBC execution through installed Java/JDBC drivers, SSH command-tab execution, SFTP/SCP queue and immediate transfer execution, local AI runtime adapter, LSP server detection, local packaging script, and end-user documentation.
+
+Build `2.2.0.12` adds Setup > Verify And Install Dependencies. It checks the supported executable catalog, identifies missing dependencies, displays source URLs and platform package-manager install commands, and executes the selected install only after user confirmation.
+
+Build `2.2.0.13` adds runtime-completion hardening for the remaining pre-pilot gaps: persistent same-window SSH/local terminal sessions with process input/output, JDBC metadata dashboard/object/column browsing through installed Java and JDBC drivers, local AI knowledge reindexing, guarded rename refactor with rollback backup/report, debug adapter detection, and a cross-platform package audit script.
+
+Build `2.2.0.14` adds production-hardening implementation for the known readiness gaps: terminal sessions expose PTY-backed launch status where the platform `script` wrapper is available, JDBC metadata browsing covers schemas, catalogs, indexes, keys, procedures, type information, and privileges, DBA probes cover common Oracle/PostgreSQL/MySQL/SQL Server health queries, AI/ML Assistant fits a local TF-IDF retrieval/ranking model with a training report, and the repository includes macOS/Linux/Windows CI validation assets.
 
 Visual Studio import requirements:
 

@@ -6,6 +6,7 @@
 - **Baseline version:** 2.2.0.0
 - **Baseline date:** 2026-05-19
 - **Baseline type:** Ver 2.2 implementation baseline and benchmark
+- **Design freeze:** Frozen on 2026-05-19 in `docs/mEditor_VER_2_2_DESIGN_FREEZE.md`
 - **Owner:** Sanjay Pandey <s.pandey.india@gmail.com>
 - **Build note:** This is a baseline and benchmark record. The Build component remains `0`.
 - **Baseline tag:** `ver-2.2.0.0`
@@ -52,7 +53,7 @@ Recorded on 2026-05-19:
 - CLI status: reports `mEditor 2.2.0.0`.
 - Current platform reported during benchmark: `MacOS Arm64`.
 - Ver 2.2 laptop target check: `true`.
-- Default menu items: 49.
+- Default menu items: 53.
 - Top-right menu bar items: 1.
 - Workbench modules: 57.
 - Same-window modules: `true`.

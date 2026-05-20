@@ -38,11 +38,19 @@ pub fn default_menu_items() -> Vec<MenuItem> {
         item("File", "Import Project", "file.importProject.open"),
         item("Source", "Refactor", "source.refactor.open"),
         item("Source", "Reformat", "source.reformat"),
+        item("Source", "Vi Editor", "source.viEditor.open"),
+        item("Team", "Git", "team.git.open"),
+        item("Team", "SVN", "team.svn.open"),
         item("Run", "Tasks", "run.tasks.open"),
         item(
             "Setup",
             "Programming Language Support",
             "setup.languageSupport.open",
+        ),
+        item(
+            "Setup",
+            "Verify And Install Dependencies",
+            "setup.verifyInstallDependencies.open",
         ),
         item("Tools", "DBA Workshop", "tools.dbaWorkshop.open"),
         item("Tools", "SSH Terminus", "tools.sshTerminus.open"),
@@ -192,6 +200,15 @@ mod tests {
             .any(|item| item.menu == "Source" && item.label == "Reformat"));
         assert!(menu
             .iter()
+            .any(|item| item.menu == "Source" && item.label == "Vi Editor"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Team" && item.label == "Git"));
+        assert!(menu
+            .iter()
+            .any(|item| item.menu == "Team" && item.label == "SVN"));
+        assert!(menu
+            .iter()
             .any(|item| item.menu == "Run" && item.label == "Tasks"));
         assert!(menu
             .iter()
@@ -247,6 +264,9 @@ mod tests {
         assert!(menu
             .iter()
             .any(|item| item.menu == "Setup" && item.label == "Programming Language Support"));
+        assert!(menu.iter().any(|item| {
+            item.menu == "Setup" && item.label == "Verify And Install Dependencies"
+        }));
         assert!(menu
             .iter()
             .any(|item| item.menu == "Tools" && item.label == "Web Browser"));

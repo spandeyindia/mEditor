@@ -1,0 +1,34 @@
+[package]
+name = "meditor-gui"
+version = "2.2.0"
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "meditor-gui"
+path = "src/main.rs"
+
+[dependencies]
+meditor-ai = { path = "../meditor-ai" }
+meditor-browser = { path = "../meditor-browser" }
+meditor-code-security = { path = "../meditor-code-security" }
+meditor-core = { path = "../meditor-core" }
+meditor-cvss-repository = { path = "../meditor-cvss-repository" }
+meditor-db-workbench = { path = "../meditor-db-workbench" }
+meditor-file-explorer = { path = "../meditor-file-explorer" }
+meditor-installation-metrics = { path = "../meditor-installation-metrics" }
+meditor-platform = { path = "../meditor-platform" }
+meditor-project-importers = { path = "../meditor-project-importers" }
+meditor-project-workspace = { path = "../meditor-project-workspace" }
+meditor-sdlc = { path = "../meditor-sdlc" }
+meditor-shell = { path = "../meditor-shell" }
+meditor-ssh-terminus = { path = "../meditor-ssh-terminus" }
+meditor-toolchains = { path = "../meditor-toolchains" }
+meditor-uml-modeling = { path = "../meditor-uml-modeling" }
+meditor-validators = { path = "../meditor-validators" }
+meditor-workbench = { path = "../meditor-workbench" }
+serde_json = "1.0.149"
+tao = "0.35.2"
+wry = "0.55.1"
+xml-rs = "0.8.25"

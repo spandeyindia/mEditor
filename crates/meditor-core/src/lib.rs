@@ -7,7 +7,21 @@ pub const FROZEN_VER_1: &str = "1.5.0.0-frozen";
 pub const PRE_PILOT_VER_2: &str = "2.0.0.0-pre-pilot";
 pub const VER_2_1_BASELINE: &str = "2.1.0.0";
 pub const VER_2_2_BASELINE: &str = "2.2.0.0";
-pub const CURRENT_BASELINE_VERSION: &str = VER_2_2_BASELINE;
+pub const VER_2_2_GUI_BUILD: &str = "2.2.0.1";
+pub const VER_2_2_GUI_BACKEND_BUILD: &str = "2.2.0.2";
+pub const VER_2_2_GUI_RESPONSIVE_BUILD: &str = "2.2.0.3";
+pub const VER_2_2_GUI_WORKBENCH_BUILD: &str = "2.2.0.4";
+pub const VER_2_2_GUI_REALTIME_VALIDATION_BUILD: &str = "2.2.0.5";
+pub const VER_2_2_PROJECT_CORE_BUILD: &str = "2.2.0.6";
+pub const VER_2_2_VI_EDITOR_BUILD: &str = "2.2.0.7";
+pub const VER_2_2_FORMATTER_WORKBENCH_BUILD: &str = "2.2.0.8";
+pub const VER_2_2_SDLC_WORKFLOW_BUILD: &str = "2.2.0.9";
+pub const VER_2_2_PREPILOT_COMPLETION_BUILD: &str = "2.2.0.10";
+pub const VER_2_2_RELEASE_HARDENING_BUILD: &str = "2.2.0.11";
+pub const VER_2_2_DEPENDENCY_INSTALL_BUILD: &str = "2.2.0.12";
+pub const VER_2_2_RUNTIME_COMPLETION_BUILD: &str = "2.2.0.13";
+pub const VER_2_2_PRODUCTION_HARDENING_BUILD: &str = "2.2.0.14";
+pub const CURRENT_BASELINE_VERSION: &str = VER_2_2_PRODUCTION_HARDENING_BUILD;
 pub const VERSION_SCHEMA: &str = "Major release.Minor release.Bugfix or enhancement.Build";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -172,7 +186,103 @@ mod tests {
         assert_eq!(version.bugfix_or_enhancement, 0);
         assert_eq!(version.build, 0);
         assert_eq!(version.label, None);
-        assert_eq!(CURRENT_BASELINE_VERSION, VER_2_2_BASELINE);
+    }
+
+    #[test]
+    fn parses_ver_2_2_gui_build_versions() {
+        let version =
+            AppVersion::from_str(VER_2_2_GUI_BUILD).expect("Ver 2.2 GUI build should parse");
+        assert_eq!(version.major_release, 2);
+        assert_eq!(version.minor_release, 2);
+        assert_eq!(version.bugfix_or_enhancement, 0);
+        assert_eq!(version.build, 1);
+        assert_eq!(version.label, None);
+
+        let backend_version = AppVersion::from_str(VER_2_2_GUI_BACKEND_BUILD)
+            .expect("Ver 2.2 GUI backend build should parse");
+        assert_eq!(backend_version.major_release, 2);
+        assert_eq!(backend_version.minor_release, 2);
+        assert_eq!(backend_version.bugfix_or_enhancement, 0);
+        assert_eq!(backend_version.build, 2);
+        assert_eq!(backend_version.label, None);
+
+        let responsive_version = AppVersion::from_str(VER_2_2_GUI_RESPONSIVE_BUILD)
+            .expect("Ver 2.2 GUI responsive build should parse");
+        assert_eq!(responsive_version.major_release, 2);
+        assert_eq!(responsive_version.minor_release, 2);
+        assert_eq!(responsive_version.bugfix_or_enhancement, 0);
+        assert_eq!(responsive_version.build, 3);
+        assert_eq!(responsive_version.label, None);
+
+        let workbench_version = AppVersion::from_str(VER_2_2_GUI_WORKBENCH_BUILD)
+            .expect("Ver 2.2 GUI workbench build should parse");
+        assert_eq!(workbench_version.major_release, 2);
+        assert_eq!(workbench_version.minor_release, 2);
+        assert_eq!(workbench_version.bugfix_or_enhancement, 0);
+        assert_eq!(workbench_version.build, 4);
+        assert_eq!(workbench_version.label, None);
+
+        let realtime_validation_version =
+            AppVersion::from_str(VER_2_2_GUI_REALTIME_VALIDATION_BUILD)
+                .expect("Ver 2.2 GUI realtime validation build should parse");
+        assert_eq!(realtime_validation_version.major_release, 2);
+        assert_eq!(realtime_validation_version.minor_release, 2);
+        assert_eq!(realtime_validation_version.bugfix_or_enhancement, 0);
+        assert_eq!(realtime_validation_version.build, 5);
+        assert_eq!(realtime_validation_version.label, None);
+        assert_eq!(
+            realtime_validation_version.bump_build().to_string(),
+            VER_2_2_PROJECT_CORE_BUILD
+        );
+        let project_core_version = AppVersion::from_str(VER_2_2_PROJECT_CORE_BUILD)
+            .expect("Ver 2.2 project core build should parse");
+        assert_eq!(
+            project_core_version.bump_build().to_string(),
+            VER_2_2_VI_EDITOR_BUILD
+        );
+        let vi_editor_version = AppVersion::from_str(VER_2_2_VI_EDITOR_BUILD)
+            .expect("Ver 2.2 Vi editor build should parse");
+        assert_eq!(
+            vi_editor_version.bump_build().to_string(),
+            VER_2_2_FORMATTER_WORKBENCH_BUILD
+        );
+        let formatter_version = AppVersion::from_str(VER_2_2_FORMATTER_WORKBENCH_BUILD)
+            .expect("Ver 2.2 formatter workbench build should parse");
+        assert_eq!(
+            formatter_version.bump_build().to_string(),
+            VER_2_2_SDLC_WORKFLOW_BUILD
+        );
+        let sdlc_version = AppVersion::from_str(VER_2_2_SDLC_WORKFLOW_BUILD)
+            .expect("Ver 2.2 SDLC workflow build should parse");
+        assert_eq!(
+            sdlc_version.bump_build().to_string(),
+            VER_2_2_PREPILOT_COMPLETION_BUILD
+        );
+        let completion_version = AppVersion::from_str(VER_2_2_PREPILOT_COMPLETION_BUILD)
+            .expect("Ver 2.2 pre-pilot completion build should parse");
+        assert_eq!(
+            completion_version.bump_build().to_string(),
+            VER_2_2_RELEASE_HARDENING_BUILD
+        );
+        let release_hardening_version = AppVersion::from_str(VER_2_2_RELEASE_HARDENING_BUILD)
+            .expect("Ver 2.2 release hardening build should parse");
+        assert_eq!(
+            release_hardening_version.bump_build().to_string(),
+            VER_2_2_DEPENDENCY_INSTALL_BUILD
+        );
+        let dependency_install_version = AppVersion::from_str(VER_2_2_DEPENDENCY_INSTALL_BUILD)
+            .expect("Ver 2.2 dependency install build should parse");
+        assert_eq!(
+            dependency_install_version.bump_build().to_string(),
+            VER_2_2_RUNTIME_COMPLETION_BUILD
+        );
+        let runtime_completion_version = AppVersion::from_str(VER_2_2_RUNTIME_COMPLETION_BUILD)
+            .expect("Ver 2.2 runtime completion build should parse");
+        assert_eq!(
+            runtime_completion_version.bump_build().to_string(),
+            VER_2_2_PRODUCTION_HARDENING_BUILD
+        );
+        assert_eq!(CURRENT_BASELINE_VERSION, VER_2_2_PRODUCTION_HARDENING_BUILD);
     }
 
     #[test]
