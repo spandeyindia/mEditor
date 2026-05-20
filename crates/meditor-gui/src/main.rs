@@ -45,7 +45,7 @@ fn terminal_sessions() -> &'static Mutex<BTreeMap<String, TerminalSession>> {
 }
 
 fn main() -> wry::Result<()> {
-    let workspace_root = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
+    let workspace_root = startup_workspace_root();
     let event_loop = EventLoopBuilder::<HostEvent>::with_user_event().build();
     let proxy = event_loop.create_proxy();
     let window_title = format!("mEditor {}", meditor_core::CURRENT_BASELINE_VERSION);
@@ -81,6 +81,81 @@ fn main() -> wry::Result<()> {
             _ => {}
         }
     });
+}
+
+fn startup_workspace_root() -> PathBuf {
+    choose_startup_workspace_root(
+        std::env::var_os("mEditor_WORKSPACE").map(PathBuf::from),
+        std::env::current_dir().ok(),
+        std::env::current_exe().ok(),
+    )
+}
+
+fn choose_startup_workspace_root(
+    configured_workspace: Option<PathBuf>,
+    current_dir: Option<PathBuf>,
+    current_exe: Option<PathBuf>,
+) -> PathBuf {
+    for candidate in configured_workspace
+        .into_iter()
+        .chain(current_dir)
+        .chain(current_exe.as_deref().and_then(package_root_from_exe))
+    {
+        if workspace_candidate_is_writable(&candidate) {
+            return candidate;
+        }
+    }
+
+    let fallback = user_home_dir()
+        .unwrap_or_else(std::env::temp_dir)
+        .join("mEditor-workspace");
+    let _ = fs::create_dir_all(&fallback);
+    fallback
+}
+
+fn package_root_from_exe(executable_path: &Path) -> Option<PathBuf> {
+    let executable_dir = executable_path.parent()?;
+    if executable_dir.file_name().and_then(|name| name.to_str()) == Some("MacOS") {
+        let contents_dir = executable_dir.parent()?;
+        if contents_dir.file_name().and_then(|name| name.to_str()) == Some("Contents") {
+            let app_dir = contents_dir.parent()?;
+            if app_dir.extension().and_then(|extension| extension.to_str()) == Some("app") {
+                return app_dir.parent().map(Path::to_path_buf);
+            }
+        }
+    }
+    Some(executable_dir.to_path_buf())
+}
+
+fn workspace_candidate_is_writable(path: &Path) -> bool {
+    if root_or_app_bundle_path(path) {
+        return false;
+    }
+    let state_dir = path.join(".meditor");
+    let probe = state_dir.join(".startup-write-test");
+    fs::create_dir_all(&state_dir)
+        .and_then(|_| fs::write(&probe, b"mEditor startup workspace probe"))
+        .and_then(|_| fs::remove_file(&probe))
+        .is_ok()
+}
+
+fn root_or_app_bundle_path(path: &Path) -> bool {
+    let normal_components = path
+        .components()
+        .filter(|component| matches!(component, Component::Normal(_)))
+        .count();
+    if path.is_absolute() && normal_components == 0 {
+        return true;
+    }
+    path.components().any(|component| {
+        matches!(component, Component::Normal(value) if value.to_string_lossy().ends_with(".app"))
+    })
+}
+
+fn user_home_dir() -> Option<PathBuf> {
+    std::env::var_os("HOME")
+        .or_else(|| std::env::var_os("USERPROFILE"))
+        .map(PathBuf::from)
 }
 
 fn respond_to_ipc(webview: &WebView, workspace_root: &Path, payload: &str) {
@@ -8406,6 +8481,32 @@ mod tests {
         assert!(html.contains("createExtensionSkeleton"));
         assert!(html.contains("Workspace Indexer"));
         assert!(!html.contains("<details class=\"menu\""));
+
+        fs::remove_dir_all(root).unwrap();
+    }
+
+    #[test]
+    fn packaged_macos_launch_uses_writable_package_parent_instead_of_root() {
+        let root = temp_workspace();
+        let package_root = root.join("mEditor-package");
+        let executable = package_root.join("mEditor.app/Contents/MacOS/mEditor");
+        fs::create_dir_all(executable.parent().unwrap()).unwrap();
+
+        assert_eq!(
+            package_root_from_exe(&executable).as_deref(),
+            Some(package_root.as_path())
+        );
+
+        #[cfg(not(target_os = "windows"))]
+        {
+            let selected = choose_startup_workspace_root(
+                None,
+                Some(PathBuf::from("/")),
+                Some(executable.clone()),
+            );
+            assert_eq!(selected, package_root);
+            assert!(selected.join(".meditor").is_dir());
+        }
 
         fs::remove_dir_all(root).unwrap();
     }

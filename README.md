@@ -11,7 +11,7 @@ mEditor is planned as a standalone Rust-based multi-language IDE, code editor, d
 - **Ver 2 pre-pilot baseline:** `2.0.0.0-pre-pilot`, frozen on 2026-05-19.
 - **Ver 2.1 baseline:** `2.1.0.0`, added on 2026-05-19.
 - **Ver 2.2 baseline:** `2.2.0.0`, added and design-frozen on 2026-05-19.
-- **Current implementation build:** `2.2.0.14`, adds PTY-aware terminal session launch where the platform `script` utility is available, richer JDBC metadata and DBA probes, fitted local AI retrieval model training, and cross-platform CI/package validation assets.
+- **Current implementation build:** `2.2.0.15`, fixes packaged macOS `.app` workspace detection so first-run EULA/license state is written to a writable workspace instead of `/`.
 - **Implementation direction:** Standalone Rust workspace with reusable crates for the native GUI shell, editor shell, language tooling, debugger integration, file explorer, embedded browser, database workbench, SSH terminal management, project importers, framework wizards, packaging, and native-image support.
 - **UI direction:** SQL Developer-style desktop workbench with navigator trees, file explorer, tabbed editors, embedded browser tabs, worksheet tabs, result grids, object browser panels, connection profiles, DBA dashboards, task consoles, and a user-controlled same-window tab policy.
 - **Target platforms:** Windows laptops, macOS Intel laptops, macOS Apple Silicon laptops including M4, and Linux laptops.
@@ -90,6 +90,8 @@ Build `2.2.0.12` adds Setup > Verify And Install Dependencies. It verifies the e
 Build `2.2.0.13` advances the remaining runtime gaps: SSH Terminus now has persistent same-window terminal sessions, DBA Workshop can run JDBC metadata dashboard/object/column browsing, AI/ML Assistant can build a real local knowledge index, Source > Refactor can apply a user-approved rename with rollback backup, debug adapter detection is exposed, and Diagnostics can audit cross-platform package readiness.
 
 Build `2.2.0.14` production-hardens those runtime paths: terminal sessions report PTY-backed status through the platform `script` wrapper where available, DBA Workshop adds richer JDBC metadata browsing and built-in DBA probes for common engines, AI/ML Assistant can fit a local TF-IDF retrieval/ranking model with a training report, and GitHub Actions CI is staged for macOS, Linux, and Windows validation.
+
+Build `2.2.0.15` fixes packaged app startup on macOS: when Finder/open starts the `.app` with `/` as the process working directory, mEditor now rejects root/app-bundle paths and selects a writable workspace, preventing first-run EULA acceptance from trying to write `/.meditor/license`.
 
 The GUI entry point is available through:
 

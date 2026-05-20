@@ -5,7 +5,7 @@
 - **Product name:** mEditor
 - **Frozen design version:** 2.2.0.0
 - **First implementation build after freeze:** 2.2.0.1
-- **Current implementation build:** 2.2.0.14
+- **Current implementation build:** 2.2.0.15
 - **Freeze date:** 2026-05-19
 - **Freeze type:** Ver 2.2 design freeze for the pre-pilot implementation baseline
 - **Owner:** Sanjay Pandey <s.pandey.india@gmail.com>

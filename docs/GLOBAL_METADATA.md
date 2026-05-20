@@ -3,7 +3,7 @@
 - **Product Name:** mEditor
 - **Product Expansion:** Multi Editor
 - **Short Name:** mEditor
-- **Version:** 2.2.0.14
+- **Version:** 2.2.0.15
 - **Frozen Design Version:** 2.2.0.0
 - **Product License:** mEditor Freeware EULA
 - **License Code:** LicenseRef-mEditor-Freeware-EULA
@@ -96,3 +96,4 @@
 | 63 | 2026-05-21 | Added Setup > Verify And Install Dependencies with executable catalog verification, missing dependency status, source URLs, platform package-manager install commands, and user-confirmed install execution; bumped the build to 2.2.0.12. | Dependency installer build | AI Assistant / Sanjay Pandey |
 | 64 | 2026-05-21 | Added persistent terminal sessions, JDBC metadata dashboard/object browsing, local AI knowledge reindexing, guarded rename refactor rollback, debug adapter detection, and cross-platform package audit tooling; bumped the build to 2.2.0.13. | Runtime completion hardening build | AI Assistant / Sanjay Pandey |
 | 65 | 2026-05-21 | Added PTY-aware terminal launch status, richer JDBC metadata and DBA probes, local AI retrieval model fitting with a training report, and macOS/Linux/Windows CI package validation assets; bumped the build to 2.2.0.14. | Production hardening build | AI Assistant / Sanjay Pandey |
+| 66 | 2026-05-21 | Fixed packaged macOS app startup workspace detection so first-run EULA/license state uses a writable workspace instead of the read-only filesystem root; bumped the build to 2.2.0.15. | Bugfix build | AI Assistant / Sanjay Pandey |

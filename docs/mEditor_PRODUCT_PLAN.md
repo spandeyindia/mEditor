@@ -5,7 +5,7 @@
 - **Name:** mEditor
 - **Expansion:** Multi Editor
 - **Owner:** Sanjay Pandey <s.pandey.india@gmail.com>
-- **Version:** 2.2.0.14
+- **Version:** 2.2.0.15
 - **Frozen design version:** 2.2.0.0
 - **Freeze date:** 2026-05-19
 - **Freeze status:** Ver 2.2 design frozen
@@ -86,6 +86,8 @@ Build `2.2.0.12` adds Setup > Verify And Install Dependencies. It checks the sup
 Build `2.2.0.13` adds runtime-completion hardening for the remaining pre-pilot gaps: persistent same-window SSH/local terminal sessions with process input/output, JDBC metadata dashboard/object/column browsing through installed Java and JDBC drivers, local AI knowledge reindexing, guarded rename refactor with rollback backup/report, debug adapter detection, and a cross-platform package audit script.
 
 Build `2.2.0.14` adds production-hardening implementation for the known readiness gaps: terminal sessions expose PTY-backed launch status where the platform `script` wrapper is available, JDBC metadata browsing covers schemas, catalogs, indexes, keys, procedures, type information, and privileges, DBA probes cover common Oracle/PostgreSQL/MySQL/SQL Server health queries, AI/ML Assistant fits a local TF-IDF retrieval/ranking model with a training report, and the repository includes macOS/Linux/Windows CI validation assets.
+
+Build `2.2.0.15` fixes the packaged macOS `.app` launch workflow by resolving a writable startup workspace when the OS starts the app with `/` as current directory, so EULA acceptance and local `.meditor` state are not written to the read-only filesystem root.
 
 Visual Studio import requirements:
 
