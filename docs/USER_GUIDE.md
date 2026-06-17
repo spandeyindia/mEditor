@@ -1,6 +1,6 @@
 # mEditor User Guide
 
-Version: 2.2.0.16
+Version: 2.2.0.18
 
 Owner contact: Sanjay Pandey <s.pandey.india@gmail.com>
 
@@ -117,6 +117,16 @@ Knowledge files are stored under:
 
 `./.meditor/ai/knowledge/`
 
+The assistant can also export a JSONL fine-tune dataset from the local knowledge base and run an explicitly configured external trainer. The trainer command is saved at:
+
+`./.meditor/ai/training/external-trainer.json`
+
+The exported dataset is stored at:
+
+`./.meditor/ai/training/fine-tune-dataset.jsonl`
+
+Any real model weight mutation happens only inside the user-approved external trainer.
+
 User approval is required before any AI-generated code change. Auto-remediation must remain disabled until the user explicitly enables it.
 
 ## Refactor And LSP
@@ -165,10 +175,24 @@ The cross-platform package audit script is:
 
 `packaging/verify-cross-platform-package.sh`
 
-It smoke-checks the current host package and records that Windows/Linux production validation requires native runners or VMs.
+It smoke-checks the current host package and records that Windows/Linux production validation requires native runners or VMs when not running on those platforms.
+
+Windows runners use:
+
+`packaging/build-local-package.ps1`
+
+`packaging/verify-cross-platform-package.ps1`
 
 The repository also includes `.github/workflows/mEditor-ci.yml` for macOS, Linux, and Windows build/test/package validation on GitHub Actions runners.
 
 ## Diagnostics
 
 Help > Diagnostics Bundle previews version, platform, workspace, module count, and error capture fields. Diagnostics must be reviewed and redacted before sharing.
+
+The Production Readiness Gate writes:
+
+`./.meditor/production-readiness/production-readiness-report.json`
+
+`./.meditor/production-readiness/production-readiness-report.md`
+
+Required checks cover version consistency, writable workspace state, current-host package presence, documentation currency, cross-platform CI staging, and product metadata cleanliness. Optional warnings cover machine dependencies such as credential store, SSH/SCP, Java/JDBC tooling, local AI runtime, and external platform validation evidence.

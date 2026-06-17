@@ -26,7 +26,7 @@ cp VERSION README.md LICENSE.md "$package_root/"
 cp docs/USER_GUIDE.md docs/GLOBAL_METADATA.md docs/mEditor_VER_2_2_DESIGN_FREEZE.md "$package_root/docs/"
 cp -R setup/. "$package_root/setup/"
 find "$package_root/setup" -name .DS_Store -delete
-cp packaging/verify-cross-platform-package.sh "$package_root/packaging/"
+cp packaging/verify-cross-platform-package.sh packaging/build-local-package.ps1 packaging/verify-cross-platform-package.ps1 "$package_root/packaging/"
 
 cat > "$package_root/README-FIRST.txt" <<EOF
 mEditor ${version}

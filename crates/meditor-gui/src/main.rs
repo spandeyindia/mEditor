@@ -51,8 +51,8 @@ fn main() -> wry::Result<()> {
     let window_title = format!("mEditor {}", meditor_core::CURRENT_BASELINE_VERSION);
     let window = WindowBuilder::new()
         .with_title(window_title)
-        .with_inner_size(LogicalSize::new(1440.0, 920.0))
-        .with_min_inner_size(LogicalSize::new(1100.0, 720.0))
+        .with_inner_size(default_window_size())
+        .with_min_inner_size(LogicalSize::new(900.0, 640.0))
         .build(&event_loop)
         .expect("mEditor GUI window should be created");
 
@@ -81,6 +81,20 @@ fn main() -> wry::Result<()> {
             _ => {}
         }
     });
+}
+
+fn default_window_size() -> LogicalSize<f64> {
+    let width = configured_window_dimension("mEditor_WINDOW_WIDTH", 1240.0, 900.0, 1280.0);
+    let height = configured_window_dimension("mEditor_WINDOW_HEIGHT", 820.0, 640.0, 880.0);
+    LogicalSize::new(width, height)
+}
+
+fn configured_window_dimension(name: &str, default: f64, min: f64, max: f64) -> f64 {
+    std::env::var(name)
+        .ok()
+        .and_then(|value| value.parse::<f64>().ok())
+        .unwrap_or(default)
+        .clamp(min, max)
 }
 
 fn startup_workspace_root() -> PathBuf {
@@ -948,6 +962,49 @@ fn handle_ipc(workspace_root: &Path, payload: &str) -> serde_json::Value {
             }
             Err(error) => generic_action_error("tools.aimlAssistant.open", "AI Local Training", error),
         },
+        "exportAiTrainingDataset" => match export_ai_training_dataset(workspace_root) {
+            Ok(messages) => generic_action_result(
+                "tools.aimlAssistant.open",
+                "AI Fine-tune Dataset Exported",
+                messages,
+            ),
+            Err(error) => generic_action_error(
+                "tools.aimlAssistant.open",
+                "AI Fine-tune Dataset Export",
+                error,
+            ),
+        },
+        "saveAiTrainerConfig" => {
+            let executable = request
+                .get("executable")
+                .and_then(|value| value.as_str())
+                .unwrap_or("");
+            let args = request.get("args").and_then(|value| value.as_str()).unwrap_or("");
+            match save_ai_trainer_config(workspace_root, executable, args) {
+                Ok(messages) => generic_action_result(
+                    "tools.aimlAssistant.open",
+                    "AI Trainer Config Saved",
+                    messages,
+                ),
+                Err(error) => generic_action_error(
+                    "tools.aimlAssistant.open",
+                    "AI Trainer Config",
+                    error,
+                ),
+            }
+        },
+        "runAiTrainingJob" => match run_ai_training_job(workspace_root) {
+            Ok(result) => serde_json::json!({
+                "action": "aiRuntimeResult",
+                "ok": true,
+                "commandLine": result.command_line,
+                "exitCode": result.exit_code,
+                "success": result.success,
+                "stdout": result.stdout,
+                "stderr": result.stderr,
+            }),
+            Err(error) => json_error("aiRuntimeResult", error),
+        },
         "detectDebugAdapters" => generic_action_result(
             "source.refactor.open",
             "Debug Adapter Detection",
@@ -1295,6 +1352,18 @@ fn handle_ipc(workspace_root: &Path, payload: &str) -> serde_json::Value {
             "Diagnostics Preview",
             diagnostics_preview_messages(workspace_root),
         ),
+        "productionReadiness" => match production_readiness_messages(workspace_root) {
+            Ok(messages) => generic_action_result(
+                "help.diagnosticsBundle.open",
+                "Production Readiness Gate",
+                messages,
+            ),
+            Err(error) => generic_action_error(
+                "help.diagnosticsBundle.open",
+                "Production Readiness Gate",
+                error,
+            ),
+        },
         "updateCheckPreview" => match check_update_source(workspace_root) {
             Ok(messages) => generic_action_result("help.about.open", "Update Check", messages),
             Err(error) => generic_action_error("help.about.open", "Update Check", error),
@@ -1801,6 +1870,219 @@ fn train_ai_local_model(workspace_root: &Path) -> Result<Vec<String>, String> {
         format!("Training report: {}", display_path(&report_path)),
         "Production note: mEditor now fits a local retrieval/ranking model; LLM weight fine-tuning remains an external-runtime feature.".to_string(),
     ])
+}
+
+fn export_ai_training_dataset(workspace_root: &Path) -> Result<Vec<String>, String> {
+    let knowledge_root = workspace_root.join(".meditor/ai/knowledge");
+    if !knowledge_root.exists() {
+        return Err(
+            "No local knowledge sources found. Save knowledge before exporting a training dataset."
+                .to_string(),
+        );
+    }
+
+    let mut documents = Vec::new();
+    collect_text_documents(workspace_root, &knowledge_root, &mut documents)?;
+    if documents.is_empty() {
+        return Err("No text knowledge sources were found for dataset export.".to_string());
+    }
+
+    let dataset_path = workspace_root.join(".meditor/ai/training/fine-tune-dataset.jsonl");
+    ensure_parent(&dataset_path)?;
+    let mut dataset = String::new();
+    let mut example_count = 0usize;
+    let mut source_records = Vec::new();
+    for path in documents {
+        let content = fs::read_to_string(&path)
+            .map_err(|error| format!("Unable to read {}: {error}", display_path(&path)))?;
+        let relative = path
+            .strip_prefix(workspace_root)
+            .ok()
+            .and_then(|path| path.to_str())
+            .unwrap_or("")
+            .to_string();
+        source_records.push(serde_json::json!({
+            "path": relative,
+            "bytes": content.len(),
+        }));
+        for chunk in text_chunks(&content, 2800).into_iter().take(50) {
+            let line = serde_json::json!({
+                "messages": [
+                    {
+                        "role": "system",
+                        "content": "You are the local mEditor coding assistant. Learn only from user-approved local project knowledge."
+                    },
+                    {
+                        "role": "user",
+                        "content": format!("Use the knowledge source {} to answer future programming, architecture, design, and debugging questions.", relative)
+                    },
+                    {
+                        "role": "assistant",
+                        "content": chunk
+                    }
+                ],
+                "source_path": relative,
+                "created_at_epoch": now_epoch_seconds(),
+            });
+            dataset.push_str(
+                &serde_json::to_string(&line)
+                    .map_err(|error| format!("Unable to serialize dataset row: {error}"))?,
+            );
+            dataset.push('\n');
+            example_count += 1;
+        }
+    }
+    fs::write(&dataset_path, dataset)
+        .map_err(|error| format!("Unable to write {}: {error}", display_path(&dataset_path)))?;
+
+    let manifest_path = workspace_root.join(".meditor/ai/training/fine-tune-dataset-manifest.json");
+    fs::write(
+        &manifest_path,
+        serde_json::to_string_pretty(&serde_json::json!({
+            "created_at_epoch": now_epoch_seconds(),
+            "version": meditor_core::CURRENT_BASELINE_VERSION,
+            "dataset": path_relative_to(workspace_root, &dataset_path),
+            "format": "jsonl.chat.messages",
+            "examples": example_count,
+            "sources": source_records,
+            "approval_required_before_external_training": true,
+            "model_weight_mutation_inside_meditor": false,
+        }))
+        .map_err(|error| format!("Unable to serialize dataset manifest: {error}"))?,
+    )
+    .map_err(|error| format!("Unable to write {}: {error}", display_path(&manifest_path)))?;
+
+    Ok(vec![
+        format!("Training examples exported: {example_count}"),
+        format!("Dataset: {}", display_path(&dataset_path)),
+        format!("Manifest: {}", display_path(&manifest_path)),
+        "The dataset is ready for an explicit external trainer. mEditor does not mutate model weights without the configured trainer command.".to_string(),
+    ])
+}
+
+fn text_chunks(content: &str, max_chars: usize) -> Vec<String> {
+    let mut chunks = Vec::new();
+    let mut current = String::new();
+    for line in content.lines() {
+        if current.len() + line.len() + 1 > max_chars && !current.trim().is_empty() {
+            chunks.push(current.trim().to_string());
+            current.clear();
+        }
+        current.push_str(line);
+        current.push('\n');
+    }
+    if !current.trim().is_empty() {
+        chunks.push(current.trim().to_string());
+    }
+    chunks
+}
+
+fn save_ai_trainer_config(
+    workspace_root: &Path,
+    executable: &str,
+    args_text: &str,
+) -> Result<Vec<String>, String> {
+    let executable = executable.trim();
+    if executable.is_empty() {
+        return Err("Trainer executable is required.".to_string());
+    }
+    let args = args_text
+        .lines()
+        .map(str::trim)
+        .filter(|arg| !arg.is_empty())
+        .map(str::to_string)
+        .collect::<Vec<_>>();
+    let path = workspace_root.join(".meditor/ai/training/external-trainer.json");
+    ensure_parent(&path)?;
+    fs::write(
+        &path,
+        serde_json::to_string_pretty(&serde_json::json!({
+            "executable": executable,
+            "args": args,
+            "saved_at_epoch": now_epoch_seconds(),
+            "dataset_placeholder": "{dataset}",
+            "model_placeholder": "{model}",
+            "approval_required_before_run": true,
+        }))
+        .map_err(|error| format!("Unable to serialize trainer config: {error}"))?,
+    )
+    .map_err(|error| format!("Unable to write {}: {error}", display_path(&path)))?;
+    Ok(vec![
+        format!("Trainer config saved: {}", display_path(&path)),
+        format!(
+            "Executable availability: {}",
+            command_exists(executable) || Path::new(executable).exists()
+        ),
+        "Run External Training Job will execute only this saved command after user confirmation."
+            .to_string(),
+    ])
+}
+
+fn run_ai_training_job(workspace_root: &Path) -> Result<CommandCapture, String> {
+    let dataset_path = workspace_root.join(".meditor/ai/training/fine-tune-dataset.jsonl");
+    if !dataset_path.is_file() {
+        export_ai_training_dataset(workspace_root)?;
+    }
+    let config_path = workspace_root.join(".meditor/ai/training/external-trainer.json");
+    if !config_path.is_file() {
+        return Err("No external trainer is configured. Save trainer config first.".to_string());
+    }
+    let config = fs::read_to_string(&config_path)
+        .map_err(|error| format!("Unable to read {}: {error}", display_path(&config_path)))?;
+    let value = serde_json::from_str::<serde_json::Value>(&config)
+        .map_err(|error| format!("Unable to parse {}: {error}", display_path(&config_path)))?;
+    let executable = value
+        .get("executable")
+        .and_then(|value| value.as_str())
+        .unwrap_or("")
+        .trim()
+        .to_string();
+    if executable.is_empty() {
+        return Err("Trainer config does not contain an executable.".to_string());
+    }
+    if !command_exists(&executable) && !Path::new(&executable).exists() {
+        return Err(format!("Trainer executable was not found: {executable}"));
+    }
+    let model_path = workspace_root.join(".meditor/ai/model/external-trained-model");
+    ensure_parent(&model_path)?;
+    let args = value
+        .get("args")
+        .and_then(|value| value.as_array())
+        .map(|args| {
+            args.iter()
+                .filter_map(|arg| arg.as_str())
+                .map(|arg| {
+                    arg.replace("{dataset}", &display_path(&dataset_path))
+                        .replace("{model}", &display_path(&model_path))
+                })
+                .collect::<Vec<_>>()
+        })
+        .unwrap_or_default();
+    let profile = TaskProfile {
+        action: "ai-external-training",
+        label: "External AI Training",
+        executable,
+        args,
+        description: "Run the configured external model trainer against the exported dataset.",
+    };
+    let capture = run_command_capture(workspace_root, &profile, 900)?;
+    let report_path = workspace_root.join(".meditor/ai/training/external-training-report.md");
+    ensure_parent(&report_path)?;
+    fs::write(
+        &report_path,
+        format!(
+            "# mEditor External AI Training Report\n\n- Command: `{}`\n- Exit code: {:?}\n- Success: {}\n- Dataset: {}\n- Model target: {}\n\n## stdout\n```text\n{}\n```\n\n## stderr\n```text\n{}\n```\n",
+            capture.command_line,
+            capture.exit_code,
+            capture.success,
+            display_path(&dataset_path),
+            display_path(&model_path),
+            capture.stdout,
+            capture.stderr
+        ),
+    )
+    .map_err(|error| format!("Unable to write {}: {error}", display_path(&report_path)))?;
+    Ok(capture)
 }
 
 fn collect_text_documents(
@@ -5381,7 +5663,7 @@ fn ai_assistant_messages(prompt: &str) -> Vec<String> {
             "Human review required for code writes: {}",
             plan.human_review_required_for_code_writes
         ),
-        "Runtime model execution is not enabled yet in this verification build.".to_string(),
+        "Runtime model execution is available through configured local adapters; model weight training is delegated to the user-approved external trainer.".to_string(),
     ]
 }
 
@@ -5399,6 +5681,359 @@ fn diagnostics_preview_messages(workspace_root: &Path) -> Vec<String> {
         format!("Menu items: {}", workbench.menu_items),
         "Diagnostics export must be reviewed and redacted before sharing.".to_string(),
     ]
+}
+
+#[derive(Clone, Debug)]
+struct ProductionReadinessCheck {
+    id: &'static str,
+    label: &'static str,
+    required: bool,
+    passed: bool,
+    detail: String,
+}
+
+fn production_readiness_messages(workspace_root: &Path) -> Result<Vec<String>, String> {
+    let checks = production_readiness_checks(workspace_root);
+    let required_total = checks.iter().filter(|check| check.required).count();
+    let required_passed = checks
+        .iter()
+        .filter(|check| check.required && check.passed)
+        .count();
+    let warnings = checks
+        .iter()
+        .filter(|check| !check.required && !check.passed)
+        .count();
+    let status = if required_total == required_passed {
+        "PRODUCTION CANDIDATE"
+    } else {
+        "BLOCKED"
+    };
+
+    let report_dir = workspace_root.join(".meditor/production-readiness");
+    fs::create_dir_all(&report_dir)
+        .map_err(|error| format!("Unable to create production readiness folder: {error}"))?;
+    let json_path = report_dir.join("production-readiness-report.json");
+    let md_path = report_dir.join("production-readiness-report.md");
+    let check_json = checks
+        .iter()
+        .map(|check| {
+            serde_json::json!({
+                "id": check.id,
+                "label": check.label,
+                "required": check.required,
+                "passed": check.passed,
+                "detail": check.detail,
+            })
+        })
+        .collect::<Vec<_>>();
+    fs::write(
+        &json_path,
+        serde_json::to_string_pretty(&serde_json::json!({
+            "product": "mEditor",
+            "version": meditor_core::CURRENT_BASELINE_VERSION,
+            "created_at_epoch": now_epoch_seconds(),
+            "status": status,
+            "required_total": required_total,
+            "required_passed": required_passed,
+            "warnings": warnings,
+            "checks": check_json,
+        }))
+        .map_err(|error| format!("Unable to serialize readiness report: {error}"))?,
+    )
+    .map_err(|error| format!("Unable to write {}: {error}", display_path(&json_path)))?;
+
+    let mut markdown = String::new();
+    writeln!(markdown, "# mEditor Production Readiness Report").unwrap();
+    writeln!(markdown).unwrap();
+    writeln!(
+        markdown,
+        "- Version: {}",
+        meditor_core::CURRENT_BASELINE_VERSION
+    )
+    .unwrap();
+    writeln!(markdown, "- Status: {status}").unwrap();
+    writeln!(
+        markdown,
+        "- Required checks: {required_passed}/{required_total}"
+    )
+    .unwrap();
+    writeln!(markdown, "- Warnings: {warnings}").unwrap();
+    writeln!(markdown).unwrap();
+    writeln!(markdown, "| Check | Required | Result | Detail |").unwrap();
+    writeln!(markdown, "| --- | --- | --- | --- |").unwrap();
+    for check in &checks {
+        writeln!(
+            markdown,
+            "| {} | {} | {} | {} |",
+            check.label.replace('|', "/"),
+            check.required,
+            if check.passed { "PASS" } else { "FAIL" },
+            check.detail.replace('|', "/")
+        )
+        .unwrap();
+    }
+    fs::write(&md_path, markdown)
+        .map_err(|error| format!("Unable to write {}: {error}", display_path(&md_path)))?;
+
+    let mut messages = vec![
+        format!("Production readiness status: {status}"),
+        format!("Required checks passed: {required_passed}/{required_total}"),
+        format!("Warning checks open: {warnings}"),
+        format!("JSON report: {}", display_path(&json_path)),
+        format!("Markdown report: {}", display_path(&md_path)),
+    ];
+    messages.extend(checks.into_iter().map(|check| {
+        format!(
+            "{} [{}]: {}",
+            if check.passed { "PASS" } else { "FAIL" },
+            if check.required {
+                "required"
+            } else {
+                "warning"
+            },
+            check.detail
+        )
+    }));
+    Ok(messages)
+}
+
+fn production_readiness_checks(workspace_root: &Path) -> Vec<ProductionReadinessCheck> {
+    let version_file = workspace_root.join("VERSION");
+    let version_consistent = fs::read_to_string(&version_file)
+        .map(|value| value.trim() == meditor_core::CURRENT_BASELINE_VERSION)
+        .unwrap_or(false);
+    let current_package = current_host_package_root(workspace_root);
+    let package_binary = if cfg!(target_os = "windows") {
+        current_package.join("bin/mEditor.exe")
+    } else {
+        current_package.join("bin/mEditor")
+    };
+    let ci_workflow = workspace_root.join(".github/workflows/mEditor-ci.yml");
+    let ci_text = fs::read_to_string(&ci_workflow).unwrap_or_default();
+    let docs_text =
+        fs::read_to_string(workspace_root.join("docs/USER_GUIDE.md")).unwrap_or_default();
+    let forbidden_scan_clean = forbidden_product_metadata_is_clean(workspace_root);
+    let packaged_verifiers_present = workspace_root
+        .join("packaging/verify-cross-platform-package.sh")
+        .is_file()
+        && workspace_root
+            .join("packaging/verify-cross-platform-package.ps1")
+            .is_file();
+
+    vec![
+        readiness_check(
+            "version",
+            "Version file matches runtime",
+            true,
+            version_consistent,
+            if version_consistent {
+                format!("VERSION matches {}", meditor_core::CURRENT_BASELINE_VERSION)
+            } else {
+                format!(
+                    "VERSION is missing or does not match {}",
+                    meditor_core::CURRENT_BASELINE_VERSION
+                )
+            },
+        ),
+        readiness_check(
+            "workspace-write",
+            "Workspace state is writable",
+            true,
+            workspace_candidate_is_writable(workspace_root),
+            format!("Workspace: {}", display_path(workspace_root)),
+        ),
+        readiness_check(
+            "current-package",
+            "Current host package exists",
+            true,
+            package_binary.is_file(),
+            format!("Expected package binary: {}", display_path(&package_binary)),
+        ),
+        readiness_check(
+            "docs",
+            "End-user documentation is current",
+            true,
+            docs_text.contains(meditor_core::CURRENT_BASELINE_VERSION)
+                && docs_text.contains("Production Readiness Gate"),
+            "docs/USER_GUIDE.md contains version and production readiness instructions".to_string(),
+        ),
+        readiness_check(
+            "ci",
+            "Cross-platform CI or package verification is staged",
+            true,
+            (ci_text.contains("macos-14")
+                && ci_text.contains("ubuntu-24.04")
+                && ci_text.contains("windows-2022")
+                && ci_text.contains("build-local-package"))
+                || packaged_verifiers_present,
+            "Source checkout has GitHub Actions for macOS/Linux/Windows; packaged app has shell and PowerShell verification scripts.".to_string(),
+        ),
+        readiness_check(
+            "metadata",
+            "Product metadata is clean",
+            true,
+            forbidden_scan_clean,
+            "No forbidden product identity or email strings found in active source/docs metadata scan".to_string(),
+        ),
+        readiness_check(
+            "credential-store",
+            "OS credential backend available",
+            false,
+            credential_backend().1,
+            credential_store_status_messages().join("; "),
+        ),
+        readiness_check(
+            "ssh-stack",
+            "SSH/SFTP runtime tools available",
+            false,
+            command_exists("ssh") && command_exists("scp"),
+            format!(
+                "ssh={}, scp={}, script={}",
+                command_exists("ssh"),
+                command_exists("scp"),
+                command_exists("script")
+            ),
+        ),
+        readiness_check(
+            "jdbc-stack",
+            "JDBC runtime tools available",
+            false,
+            command_exists("java") && command_exists("javac"),
+            format!("java={}, javac={}", command_exists("java"), command_exists("javac")),
+        ),
+        readiness_check(
+            "ai-runtime",
+            "Optional local AI runtime available",
+            false,
+            command_exists("ollama"),
+            "Ollama is optional; external trainer config can also be used for model weight training.".to_string(),
+        ),
+        readiness_check(
+            "platform-package-validation",
+            "External platform validation evidence",
+            false,
+            workspace_root
+                .join(".meditor/production-readiness/platform-validation")
+                .is_dir(),
+            "Add signed Windows/Linux/macOS runner evidence under .meditor/production-readiness/platform-validation after native device tests.".to_string(),
+        ),
+    ]
+}
+
+fn readiness_check(
+    id: &'static str,
+    label: &'static str,
+    required: bool,
+    passed: bool,
+    detail: String,
+) -> ProductionReadinessCheck {
+    ProductionReadinessCheck {
+        id,
+        label,
+        required,
+        passed,
+        detail,
+    }
+}
+
+fn current_host_package_root(workspace_root: &Path) -> PathBuf {
+    let packaged_launcher = if cfg!(target_os = "windows") {
+        workspace_root.join("bin/mEditor.exe")
+    } else {
+        workspace_root.join("bin/mEditor")
+    };
+    if packaged_launcher.is_file() && workspace_root.join("VERSION").is_file() {
+        return workspace_root.to_path_buf();
+    }
+
+    let os = uname_token("-s")
+        .map(|value| value.to_ascii_lowercase())
+        .unwrap_or_else(|| {
+            if cfg!(target_os = "macos") {
+                "darwin".to_string()
+            } else if cfg!(target_os = "windows") {
+                "windows".to_string()
+            } else {
+                std::env::consts::OS.to_string()
+            }
+        });
+    let arch = uname_token("-m").unwrap_or_else(|| std::env::consts::ARCH.to_string());
+    workspace_root.join(format!(
+        "dist/mEditor-{}-{}-{}/",
+        meditor_core::CURRENT_BASELINE_VERSION,
+        os,
+        arch
+    ))
+}
+
+fn uname_token(arg: &str) -> Option<String> {
+    let output = Command::new("uname").arg(arg).output().ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let token = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if token.is_empty() {
+        None
+    } else {
+        Some(token)
+    }
+}
+
+fn forbidden_product_metadata_is_clean(workspace_root: &Path) -> bool {
+    let mut files = Vec::new();
+    collect_metadata_scan_files(workspace_root, workspace_root, 0, &mut files);
+    files.into_iter().all(|path| {
+        fs::read_to_string(&path).map_or(true, |content| {
+            let forbidden_upper = ["MED", "ITOR"].concat();
+            let forbidden_mixed = ["ME", "ditor"].concat();
+            let forbidden_email_domain = ["@oracle", ".com"].concat();
+            !content.contains(&forbidden_upper)
+                && !content.contains(&forbidden_mixed)
+                && !content.contains(&forbidden_email_domain)
+        })
+    })
+}
+
+fn collect_metadata_scan_files(root: &Path, folder: &Path, depth: usize, files: &mut Vec<PathBuf>) {
+    if depth > 5 || files.len() >= 800 {
+        return;
+    }
+    let Ok(read_dir) = fs::read_dir(folder) else {
+        return;
+    };
+    for entry in read_dir.flatten() {
+        let path = entry.path();
+        let name = entry.file_name().to_string_lossy().to_string();
+        if matches!(
+            name.as_str(),
+            ".git" | "target" | "dist" | ".DS_Store" | "node_modules"
+        ) {
+            continue;
+        }
+        if path.is_dir() {
+            collect_metadata_scan_files(root, &path, depth + 1, files);
+        } else if path.starts_with(root)
+            && path
+                .extension()
+                .and_then(|value| value.to_str())
+                .is_some_and(|extension| {
+                    matches!(
+                        extension,
+                        "rs" | "md"
+                            | "toml"
+                            | "yml"
+                            | "yaml"
+                            | "sh"
+                            | "cmd"
+                            | "ps1"
+                            | "sql"
+                            | "txt"
+                    )
+                })
+        {
+            files.push(path);
+        }
+    }
 }
 
 fn build_gui_html(workspace_root: &Path) -> String {
@@ -5437,6 +6072,8 @@ fn build_gui_html(workspace_root: &Path) -> String {
 * {{ box-sizing: border-box; }}
 body {{
   margin: 0;
+  width: 100vw;
+  max-width: 100vw;
   height: 100vh;
   overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -5447,18 +6084,24 @@ button, select, input, textarea {{
   font: inherit;
 }}
 .app {{
+  width: 100vw;
+  max-width: 100vw;
+  min-width: 0;
   height: 100vh;
   display: grid;
   grid-template-rows: 34px 36px 1fr;
   background: var(--bg);
 }}
 .menubar {{
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 0 10px;
   border-bottom: 1px solid #aebdcc;
   background: #f7f9fb;
+  overflow-x: auto;
+  overflow-y: visible;
 }}
 .menu-group {{
   position: relative;
@@ -5516,12 +6159,18 @@ button, select, input, textarea {{
   cursor: pointer;
 }}
 .toolbar {{
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 5px;
   padding: 4px 8px;
   border-bottom: 1px solid #8ea7bf;
   background: var(--chrome);
+  overflow-x: auto;
+  overflow-y: hidden;
+}}
+#windowMode {{
+  max-width: 220px;
 }}
 .tool-button {{
   min-width: 38px;
@@ -5551,6 +6200,9 @@ button, select, input, textarea {{
   background: #7e98b0;
 }}
 .workbench {{
+  width: 100%;
+  max-width: 100vw;
+  min-width: 0;
   min-height: 0;
   display: grid;
   grid-template-columns: var(--left-width, 320px) 5px minmax(0, 1fr);
@@ -5742,7 +6394,7 @@ button, select, input, textarea {{
 }}
 .welcome-grid {{
   display: grid;
-  grid-template-columns: repeat(2, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 16px;
   margin-top: 18px;
 }}
@@ -5831,7 +6483,7 @@ button, select, input, textarea {{
 }}
 .split {{
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
   gap: 12px;
 }}
 .formatter-shell {{
@@ -5900,6 +6552,22 @@ button, select, input, textarea {{
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }}
 @media (max-width: 900px) {{
+  .workbench {{
+    grid-template-columns: minmax(220px, 30vw) 5px minmax(0, 1fr);
+  }}
+  .menubar {{
+    gap: 2px;
+    padding: 0 4px;
+  }}
+  .menu-trigger {{
+    padding: 5px 6px;
+  }}
+  #windowMode {{
+    max-width: 190px;
+  }}
+  .split {{
+    grid-template-columns: 1fr;
+  }}
   .formatter-grid {{
     grid-template-columns: 1fr;
   }}
@@ -6341,6 +7009,28 @@ function trainAiLocalModel() {{
   hostRequest({{ action: 'trainAiLocalModel' }});
 }}
 
+function exportAiTrainingDataset() {{
+  hostRequest({{ action: 'exportAiTrainingDataset' }});
+}}
+
+function saveAiTrainerConfig() {{
+  hostRequest({{
+    action: 'saveAiTrainerConfig',
+    executable: document.getElementById('aiTrainerExecutable')?.value || '',
+    args: document.getElementById('aiTrainerArgs')?.value || ''
+  }});
+}}
+
+function runAiTrainingJob() {{
+  const executable = document.getElementById('aiTrainerExecutable')?.value || '';
+  if (!executable.trim()) {{
+    showErrorDialog('AI Trainer', 'Save a trainer executable before running an external training job.');
+    return;
+  }}
+  if (!confirm('Run the configured external AI trainer now? mEditor will pass the exported dataset path and capture the transcript.')) return;
+  hostRequest({{ action: 'runAiTrainingJob' }});
+}}
+
 function runSshCommand() {{
   hostRequest({{
     action: 'runSshCommand',
@@ -6662,6 +7352,10 @@ function previewFeedback(feedbackType) {{
 
 function previewDiagnostics() {{
   hostRequest({{ action: 'diagnosticsPreview' }});
+}}
+
+function runProductionReadiness() {{
+  hostRequest({{ action: 'productionReadiness' }});
 }}
 
 function previewUpdateCheck() {{
@@ -7483,7 +8177,8 @@ function initLayoutSplitters() {{
     const startX = event.clientX;
     const startWidth = leftDock.getBoundingClientRect().width;
     const onMove = moveEvent => {{
-      const next = clamp(startWidth + moveEvent.clientX - startX, 220, Math.floor(root.clientWidth * 0.48));
+      const maxLeft = Math.max(220, Math.floor(root.clientWidth * 0.42));
+      const next = clamp(startWidth + moveEvent.clientX - startX, 220, maxLeft);
       root.style.setProperty('--left-width', next + 'px');
     }};
     const onUp = () => {{
@@ -8668,12 +9363,19 @@ fn ai_assistant_html() -> String {
 <p class="hint">Workspace-aware coding help, approval-gated fixes, knowledge ingestion, and retraining contract.</p>
 <p><input id="assistantModel" class="command-filter" value="llama3" placeholder="Local model name, for example llama3"></p>
 <textarea id="assistantPrompt" class="editor" style="min-height:160px">Explain the active file and suggest safe next steps.</textarea>
-<p><button class="primary-button" onclick="askAssistant()">Ask Contract Assistant</button> <button class="secondary-button" onclick="runLocalAi()">Run Local AI Runtime</button> <button class="secondary-button" onclick="retrainAiKnowledge()">Reindex Local Knowledge</button> <button class="secondary-button" onclick="trainAiLocalModel()">Train Local Retrieval Model</button></p>
+<p><button class="primary-button" onclick="askAssistant()">Ask Contract Assistant</button> <button class="secondary-button" onclick="runLocalAi()">Run Local AI Runtime</button> <button class="secondary-button" onclick="retrainAiKnowledge()">Reindex Local Knowledge</button> <button class="secondary-button" onclick="trainAiLocalModel()">Train Local Retrieval Model</button> <button class="secondary-button" onclick="exportAiTrainingDataset()">Export Fine-tune Dataset</button></p>
 <div class="surface">
   <h3>Knowledge Ingestion</h3>
   <p><input id="knowledgeTitle" class="command-filter" placeholder="Knowledge title"></p>
   <textarea id="knowledgeContent" class="editor" style="min-height:160px" placeholder="Paste extracted PDF/EPUB/DOC/TXT/XLS knowledge or notes here"></textarea>
   <p><button class="secondary-button" onclick="saveAiKnowledge()">Save To Local Knowledge Base</button></p>
+</div>
+<div class="surface">
+  <h3>External Trainer</h3>
+  <p><input id="aiTrainerExecutable" class="command-filter" placeholder="Trainer executable, for example python3"></p>
+  <textarea id="aiTrainerArgs" class="editor" style="min-height:110px" placeholder="One argument per line. Use {{dataset}} for the exported JSONL dataset and {{model}} for the target model artifact path."></textarea>
+  <p><button class="secondary-button" onclick="saveAiTrainerConfig()">Save Trainer Config</button> <button class="primary-button" onclick="runAiTrainingJob()">Run External Training Job</button></p>
+  <p class="hint">mEditor creates the dataset and captures the training transcript. Any real model weight mutation is performed only by the explicitly configured external trainer.</p>
 </div>
 <h3>Knowledge Formats</h3>{formats}"#
     )
@@ -8860,7 +9562,7 @@ fn diagnostics_html() -> String {
     format!(
         r#"<h1>Diagnostics Bundle</h1>
 <p class="hint">Reviewed and redacted diagnostic export before sending.</p>
-<p><button class="primary-button" onclick="previewDiagnostics()">Generate Diagnostics Preview</button> <button class="secondary-button" onclick="crossPlatformPackageAudit()">Cross-platform Package Audit</button></p>
+<p><button class="primary-button" onclick="previewDiagnostics()">Generate Diagnostics Preview</button> <button class="secondary-button" onclick="crossPlatformPackageAudit()">Cross-platform Package Audit</button> <button class="primary-button" onclick="runProductionReadiness()">Run Production Readiness Gate</button></p>
 <ul>{fields}</ul>"#
     )
 }
@@ -9049,6 +9751,14 @@ fn js_string(value: impl AsRef<str>) -> String {
     escaped
 }
 
+fn path_relative_to(root: &Path, path: &Path) -> String {
+    path.strip_prefix(root)
+        .ok()
+        .and_then(|path| path.to_str())
+        .unwrap_or_else(|| path.to_str().unwrap_or(""))
+        .to_string()
+}
+
 fn display_path(path: &Path) -> String {
     path.to_string_lossy().to_string()
 }
@@ -9146,8 +9856,16 @@ mod tests {
         assert!(html.contains("runJdbcDbaProbe"));
         assert!(html.contains("retrainAiKnowledge"));
         assert!(html.contains("trainAiLocalModel"));
+        assert!(html.contains("exportAiTrainingDataset"));
+        assert!(html.contains("runAiTrainingJob"));
         assert!(html.contains("applyRenameRefactor"));
         assert!(html.contains("crossPlatformPackageAudit"));
+        assert!(html.contains("runProductionReadiness"));
+        assert!(html.contains("max-width: 100vw"));
+        assert!(html.contains("repeat(auto-fit, minmax(240px, 1fr))"));
+        assert!(
+            html.contains("const maxLeft = Math.max(220, Math.floor(root.clientWidth * 0.42));")
+        );
         assert!(html.contains("SFTP/SCP Transfer"));
         assert!(html.contains("createExtensionSkeleton"));
         assert!(html.contains("Workspace Indexer"));
@@ -9375,6 +10093,19 @@ mod tests {
         assert!(root
             .join(".meditor/ai/training/training-report.md")
             .exists());
+        let dataset = handle_ipc(&root, r#"{"action":"exportAiTrainingDataset"}"#);
+        assert_eq!(dataset["ok"], true);
+        assert!(root
+            .join(".meditor/ai/training/fine-tune-dataset.jsonl")
+            .exists());
+        let trainer_config = handle_ipc(
+            &root,
+            r#"{"action":"saveAiTrainerConfig","executable":"rustc","args":"--version"}"#,
+        );
+        assert_eq!(trainer_config["ok"], true);
+        assert!(root
+            .join(".meditor/ai/training/external-trainer.json")
+            .exists());
 
         let refactor = handle_ipc(
             &root,
@@ -9398,6 +10129,13 @@ mod tests {
         let reports = handle_ipc(&root, r#"{"action":"listReports"}"#);
         assert_eq!(reports["action"], "reportListResult");
         assert_eq!(reports["ok"], true);
+
+        let readiness = handle_ipc(&root, r#"{"action":"productionReadiness"}"#);
+        assert_eq!(readiness["action"], "genericActionResult");
+        assert_eq!(readiness["ok"], true);
+        assert!(root
+            .join(".meditor/production-readiness/production-readiness-report.json")
+            .exists());
 
         fs::remove_dir_all(root).unwrap();
     }

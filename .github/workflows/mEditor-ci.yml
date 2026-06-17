@@ -51,10 +51,20 @@ jobs:
       - name: Build GUI
         run: cargo build -p meditor-gui
 
-      - name: Build local package
+      - name: Build Unix local package
         if: runner.os != 'Windows'
         run: bash packaging/build-local-package.sh
 
-      - name: Verify package scripts
+      - name: Verify Unix package scripts
         if: runner.os != 'Windows'
         run: bash packaging/verify-cross-platform-package.sh
+
+      - name: Build Windows local package
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\packaging\build-local-package.ps1
+
+      - name: Verify Windows package scripts
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: .\packaging\verify-cross-platform-package.ps1

@@ -3,7 +3,7 @@
 - **Product Name:** mEditor
 - **Product Expansion:** Multi Editor
 - **Short Name:** mEditor
-- **Version:** 2.2.0.16
+- **Version:** 2.2.0.18
 - **Frozen Design Version:** 2.2.0.0
 - **Product License:** mEditor Freeware EULA
 - **License Code:** LicenseRef-mEditor-Freeware-EULA
@@ -98,3 +98,5 @@
 | 65 | 2026-05-21 | Added PTY-aware terminal launch status, richer JDBC metadata and DBA probes, local AI retrieval model fitting with a training report, and macOS/Linux/Windows CI package validation assets; bumped the build to 2.2.0.14. | Production hardening build | AI Assistant / Sanjay Pandey |
 | 66 | 2026-05-21 | Fixed packaged macOS app startup workspace detection so first-run EULA/license state uses a writable workspace instead of the read-only filesystem root; bumped the build to 2.2.0.15. | Bugfix build | AI Assistant / Sanjay Pandey |
 | 67 | 2026-05-21 | Replaced remaining static frozen menu behavior with concrete Rust-backed workflows and local artifacts for every menu item; bumped the build to 2.2.0.16. | Menu workflow build | AI Assistant / Sanjay Pandey |
+| 68 | 2026-05-22 | Added the production readiness gate, JSON/Markdown readiness evidence, AI fine-tune dataset export, external trainer handoff, and Windows package/CI verification path; bumped the build to 2.2.0.17. | Production readiness build | AI Assistant / Sanjay Pandey |
+| 69 | 2026-05-22 | Fixed desktop screen-width behavior with a laptop-friendly default window, smaller minimum width, responsive workbench panes, scrollable menu/toolbar chrome, and bounded left-panel resizing; bumped the build to 2.2.0.18. | Screen-width bugfix build | AI Assistant / Sanjay Pandey |

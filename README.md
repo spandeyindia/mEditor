@@ -11,7 +11,7 @@ mEditor is planned as a standalone Rust-based multi-language IDE, code editor, d
 - **Ver 2 pre-pilot baseline:** `2.0.0.0-pre-pilot`, frozen on 2026-05-19.
 - **Ver 2.1 baseline:** `2.1.0.0`, added on 2026-05-19.
 - **Ver 2.2 baseline:** `2.2.0.0`, added and design-frozen on 2026-05-19.
-- **Current implementation build:** `2.2.0.16`, makes every menu item run a concrete local Rust-backed workflow or generate a local artifact instead of opening static frozen placeholders.
+- **Current implementation build:** `2.2.0.18`, fixes desktop screen-width behavior with a smaller default window, lower minimum width, and responsive workbench panes on top of the production readiness gate.
 - **Implementation direction:** Standalone Rust workspace with reusable crates for the native GUI shell, editor shell, language tooling, debugger integration, file explorer, embedded browser, database workbench, SSH terminal management, project importers, framework wizards, packaging, and native-image support.
 - **UI direction:** SQL Developer-style desktop workbench with navigator trees, file explorer, tabbed editors, embedded browser tabs, worksheet tabs, result grids, object browser panels, connection profiles, DBA dashboards, task consoles, and a user-controlled same-window tab policy.
 - **Target platforms:** Windows laptops, macOS Intel laptops, macOS Apple Silicon laptops including M4, and Linux laptops.
@@ -94,6 +94,10 @@ Build `2.2.0.14` production-hardens those runtime paths: terminal sessions repor
 Build `2.2.0.15` fixes packaged app startup on macOS: when Finder/open starts the `.app` with `/` as the process working directory, mEditor now rejects root/app-bundle paths and selects a writable workspace, preventing first-run EULA acceptance from trying to write `/.meditor/license`.
 
 Build `2.2.0.16` removes static frozen menu behavior: every menu item now has a concrete same-window surface and opening it runs a local Rust-backed workflow, such as workspace manifests, local history snapshots, backup manifests, keymap/trust/plugin settings, CI/API/migration templates, profiler reports, AI/spec/documentation artifacts, or live module checks.
+
+Build `2.2.0.17` adds production release gating: Help > Diagnostics Bundle can write JSON and Markdown production-readiness reports, the AI/ML Assistant can export JSONL fine-tune datasets and invoke a user-approved external trainer, and CI now includes a Windows packaging path alongside macOS/Linux package checks.
+
+Build `2.2.0.18` fixes the desktop screen-width behavior: the native window now opens at a laptop-friendly size, keeps a smaller minimum width, allows the menu/toolbar to scroll horizontally when needed, and keeps the SQL Developer-style panes responsive inside the same window.
 
 The GUI entry point is available through:
 

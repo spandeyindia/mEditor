@@ -23,7 +23,9 @@ pub const VER_2_2_RUNTIME_COMPLETION_BUILD: &str = "2.2.0.13";
 pub const VER_2_2_PRODUCTION_HARDENING_BUILD: &str = "2.2.0.14";
 pub const VER_2_2_PACKAGED_WORKSPACE_FIX_BUILD: &str = "2.2.0.15";
 pub const VER_2_2_MENU_WORKFLOW_BUILD: &str = "2.2.0.16";
-pub const CURRENT_BASELINE_VERSION: &str = VER_2_2_MENU_WORKFLOW_BUILD;
+pub const VER_2_2_PRODUCTION_READINESS_BUILD: &str = "2.2.0.17";
+pub const VER_2_2_SCREEN_WIDTH_FIX_BUILD: &str = "2.2.0.18";
+pub const CURRENT_BASELINE_VERSION: &str = VER_2_2_SCREEN_WIDTH_FIX_BUILD;
 pub const VERSION_SCHEMA: &str = "Major release.Minor release.Bugfix or enhancement.Build";
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -297,7 +299,19 @@ mod tests {
             packaged_workspace_fix_version.bump_build().to_string(),
             VER_2_2_MENU_WORKFLOW_BUILD
         );
-        assert_eq!(CURRENT_BASELINE_VERSION, VER_2_2_MENU_WORKFLOW_BUILD);
+        let menu_workflow_version = AppVersion::from_str(VER_2_2_MENU_WORKFLOW_BUILD)
+            .expect("Ver 2.2 menu workflow build should parse");
+        assert_eq!(
+            menu_workflow_version.bump_build().to_string(),
+            VER_2_2_PRODUCTION_READINESS_BUILD
+        );
+        let production_readiness_version = AppVersion::from_str(VER_2_2_PRODUCTION_READINESS_BUILD)
+            .expect("Ver 2.2 production readiness build should parse");
+        assert_eq!(
+            production_readiness_version.bump_build().to_string(),
+            VER_2_2_SCREEN_WIDTH_FIX_BUILD
+        );
+        assert_eq!(CURRENT_BASELINE_VERSION, VER_2_2_SCREEN_WIDTH_FIX_BUILD);
     }
 
     #[test]
