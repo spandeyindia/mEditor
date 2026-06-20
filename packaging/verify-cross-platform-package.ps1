@@ -25,5 +25,14 @@ if (-not (Test-Path (Join-Path $PackageRoot "setup\setup.cmd"))) {
 if (-not (Test-Path (Join-Path $PackageRoot "setup\setup.sh"))) {
     throw "Missing setup\setup.sh"
 }
+if (-not (Test-Path (Join-Path $PackageRoot "vendor\xterm\xterm.js"))) {
+    throw "Missing vendor\xterm\xterm.js"
+}
+if (-not (Test-Path (Join-Path $PackageRoot "vendor\xterm\xterm.css"))) {
+    throw "Missing vendor\xterm\xterm.css"
+}
+if (-not (Test-Path (Join-Path $PackageRoot "vendor\xterm\LICENSE"))) {
+    throw "Missing vendor\xterm\LICENSE"
+}
 
 Write-Host "Current-host package smoke check: PASS ($PackageRoot)"

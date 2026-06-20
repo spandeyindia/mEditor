@@ -5,7 +5,7 @@
 - **Name:** mEditor
 - **Expansion:** Multi Editor
 - **Owner:** Sanjay Pandey <s.pandey.india@gmail.com>
-- **Version:** 2.2.0.18
+- **Version:** 2.2.0.20
 - **Frozen design version:** 2.2.0.0
 - **Freeze date:** 2026-05-19
 - **Freeze status:** Ver 2.2 design frozen
@@ -94,6 +94,10 @@ Build `2.2.0.16` makes menu activation functional across the workbench: every me
 Build `2.2.0.17` adds the production readiness gate, external AI trainer handoff, fine-tune dataset export, Windows package script path, and CI package verification for Windows alongside existing macOS/Linux package checks.
 
 Build `2.2.0.18` fixes desktop screen-width behavior by using a laptop-friendly default native window, smaller minimum width, horizontally scrollable chrome where needed, responsive workbench panes, and bounded left-panel resizing.
+
+Build `2.2.0.19` adds production-hardening bridges for the remaining readiness gaps: DBA Workshop exposes a SQL Developer-level workbench audit and richer JDBC metadata/object actions, SSH Terminus exposes PTY/backend capability audit, UI workflows expose a production-hardening evidence report, full LLVM/Clang is treated as a backend compiler profile across multiple native languages, and the embedded AI/ML engine exposes local health for knowledge, retrieval, dataset, runtime adapter, and external trainer state.
+
+Build `2.2.0.20` replaces the plain terminal output surface with the embedded xterm.js renderer for SSH/local PTY sessions and vendors the renderer assets under `vendor/xterm` for offline packaging.
 
 Visual Studio import requirements:
 

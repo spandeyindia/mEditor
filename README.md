@@ -11,7 +11,7 @@ mEditor is planned as a standalone Rust-based multi-language IDE, code editor, d
 - **Ver 2 pre-pilot baseline:** `2.0.0.0-pre-pilot`, frozen on 2026-05-19.
 - **Ver 2.1 baseline:** `2.1.0.0`, added on 2026-05-19.
 - **Ver 2.2 baseline:** `2.2.0.0`, added and design-frozen on 2026-05-19.
-- **Current implementation build:** `2.2.0.18`, fixes desktop screen-width behavior with a smaller default window, lower minimum width, and responsive workbench panes on top of the production readiness gate.
+- **Current implementation build:** `2.2.0.20`, embeds xterm.js as the full terminal renderer for SSH/local PTY sessions on top of the production-hardening bridges.
 - **Implementation direction:** Standalone Rust workspace with reusable crates for the native GUI shell, editor shell, language tooling, debugger integration, file explorer, embedded browser, database workbench, SSH terminal management, project importers, framework wizards, packaging, and native-image support.
 - **UI direction:** SQL Developer-style desktop workbench with navigator trees, file explorer, tabbed editors, embedded browser tabs, worksheet tabs, result grids, object browser panels, connection profiles, DBA dashboards, task consoles, and a user-controlled same-window tab policy.
 - **Target platforms:** Windows laptops, macOS Intel laptops, macOS Apple Silicon laptops including M4, and Linux laptops.
@@ -99,6 +99,10 @@ Build `2.2.0.17` adds production release gating: Help > Diagnostics Bundle can w
 
 Build `2.2.0.18` fixes the desktop screen-width behavior: the native window now opens at a laptop-friendly size, keeps a smaller minimum width, allows the menu/toolbar to scroll horizontally when needed, and keeps the SQL Developer-style panes responsive inside the same window.
 
+Build `2.2.0.19` adds the next production-hardening bridge: DBA Workshop now exposes a SQL Developer-level audit plus richer metadata/object actions, SSH Terminus exposes PTY/backend capability audit, Setup recognizes full LLVM/Clang as a backend compiler profile across multiple native languages, Diagnostics writes production-hardening evidence, and the AI/ML Assistant exposes embedded engine health for knowledge, retrieval model, dataset, runtime adapter, and external trainer state.
+
+Build `2.2.0.20` vendors `@xterm/xterm` 5.5.0 and replaces the plain terminal output pane with an embedded xterm.js renderer for SSH and local PTY sessions. Terminal keyboard input is sent raw to the Rust backend, while the manual command box remains available for paste/send workflows.
+
 The GUI entry point is available through:
 
 ```bash
@@ -110,3 +114,5 @@ See [mEditor_PRODUCT_PLAN.md](docs/mEditor_PRODUCT_PLAN.md) for the detailed arc
 The frozen Ver 1 baseline is recorded in [mEditor_VERSION_1_FREEZE.md](docs/mEditor_VERSION_1_FREEZE.md). Any new major capability after this point should be tracked as a Ver 1 amendment or a Ver 2 candidate.
 
 The current Ver 2.2 baseline is recorded in [mEditor_VER_2_2_BASELINE.md](docs/mEditor_VER_2_2_BASELINE.md), and the frozen Ver 2.2 design contract is recorded in [mEditor_VER_2_2_DESIGN_FREEZE.md](docs/mEditor_VER_2_2_DESIGN_FREEZE.md). Earlier baselines remain in [mEditor_VER_2_1_BASELINE.md](docs/mEditor_VER_2_1_BASELINE.md), [mEditor_VER_2_PRE_PILOT_BASELINE.md](docs/mEditor_VER_2_PRE_PILOT_BASELINE.md), and [mEditor_BASELINE_BENCHMARK.md](docs/mEditor_BASELINE_BENCHMARK.md).
+
+The current implementation readiness record is maintained in [mEditor_ACTUAL_STATUS.md](docs/mEditor_ACTUAL_STATUS.md).

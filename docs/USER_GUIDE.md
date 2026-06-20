@@ -1,6 +1,6 @@
 # mEditor User Guide
 
-Version: 2.2.0.18
+Version: 2.2.0.20
 
 Owner contact: Sanjay Pandey <s.pandey.india@gmail.com>
 
@@ -89,7 +89,7 @@ Passwords used for JDBC execution are not written to workspace JSON. Use Setting
 
 Tools > SSH Terminus supports grouped SSH profiles, connectivity tests, one-shot SSH commands, and persistent same-window terminal sessions using the installed local shell or OpenSSH tooling.
 
-Persistent sessions accept input, poll output, and can be stopped from the tab. On Unix-like platforms, mEditor uses the platform `script` utility as a PTY-backed wrapper when available and reports that state in the tab. If `script` is unavailable, it falls back to process IO. A dedicated native PTY/xterm backend remains the path for perfect terminal-control emulation.
+Persistent sessions accept input, poll output, and can be stopped from the tab. On Unix-like platforms, mEditor uses the platform `script` utility as a PTY-backed wrapper when available and reports that state in the tab. If `script` is unavailable, it falls back to process IO. SSH and local terminal tabs render through the embedded xterm.js renderer.
 
 Profiles are stored under:
 
@@ -126,6 +126,8 @@ The exported dataset is stored at:
 `./.meditor/ai/training/fine-tune-dataset.jsonl`
 
 Any real model weight mutation happens only inside the user-approved external trainer.
+
+Use **AI Engine Health** to verify local knowledge count, retrieval index, local retrieval model, exported fine-tune dataset, external trainer configuration, supported ingestion formats, and local runtime adapter availability.
 
 User approval is required before any AI-generated code change. Auto-remediation must remain disabled until the user explicitly enables it.
 
@@ -196,3 +198,27 @@ The Production Readiness Gate writes:
 `./.meditor/production-readiness/production-readiness-report.md`
 
 Required checks cover version consistency, writable workspace state, current-host package presence, documentation currency, cross-platform CI staging, and product metadata cleanliness. Optional warnings cover machine dependencies such as credential store, SSH/SCP, Java/JDBC tooling, local AI runtime, and external platform validation evidence.
+
+The **Production Hardening Audit** writes:
+
+`./.meditor/production-hardening/production-hardening-audit.json`
+
+`./.meditor/production-hardening/production-hardening-audit.md`
+
+It verifies the current bridge state for DBA Workshop, SSH/PTY terminal support, UI workflow validation, LLVM backend tooling, and embedded AI/ML engine readiness.
+
+## SSH Terminal Renderer
+
+Tools > SSH Terminus uses the embedded xterm.js renderer for SSH and local PTY sessions. The renderer is vendored under:
+
+`./vendor/xterm/`
+
+The packaged app includes `xterm.js`, `xterm.css`, and the xterm MIT license. Terminal keyboard data is sent raw to the Rust session backend so control keys, cursor keys, tabs, escape sequences, shell editors, and full-screen terminal programs can render through xterm.js. The manual command box remains available for paste/send workflows.
+
+## LLVM Backend Compiler
+
+Setup > Programming Language Support > LLVM Backend Audit detects Apple Clang and full LLVM separately. On macOS, Homebrew LLVM is keg-only, so mEditor also checks `/opt/homebrew/opt/llvm/bin` for `clang`, `clang++`, `llvm-config`, `llc`, `opt`, and `llvm-as`.
+
+The backend profile is written to:
+
+`./.meditor/toolchains/llvm-backend.json`

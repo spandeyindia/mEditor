@@ -18,6 +18,9 @@ test -f "$current_package/README-FIRST.txt"
 test -f "$current_package/docs/USER_GUIDE.md"
 test -f "$current_package/setup/setup.sh"
 test -f "$current_package/setup/setup.cmd"
+test -f "$current_package/vendor/xterm/xterm.js"
+test -f "$current_package/vendor/xterm/xterm.css"
+test -f "$current_package/vendor/xterm/LICENSE"
 
 if [[ "$current_os" == "darwin" ]]; then
   test -f "$current_package/mEditor.app/Contents/Info.plist"

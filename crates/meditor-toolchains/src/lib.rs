@@ -189,6 +189,21 @@ pub fn seed_executable_requirements() -> Vec<ExecutableRequirement> {
         exe("perl", "Perl", ToolchainDomain::Perl, false),
         exe("gcc", "GCC", ToolchainDomain::C, false),
         exe("clang", "Clang", ToolchainDomain::Cpp, false),
+        exe("clang++", "Clang++", ToolchainDomain::Cpp, false),
+        exe(
+            "llvm-config",
+            "LLVM configuration tool",
+            ToolchainDomain::Cpp,
+            false,
+        ),
+        exe("llc", "LLVM static compiler", ToolchainDomain::Cpp, false),
+        exe("opt", "LLVM optimizer", ToolchainDomain::Cpp, false),
+        exe(
+            "llvm-as",
+            "LLVM assembler",
+            ToolchainDomain::Assembly,
+            false,
+        ),
         exe("cmake", "CMake", ToolchainDomain::Cpp, false),
         exe("make", "Make", ToolchainDomain::Cpp, false),
         exe("nasm", "NASM", ToolchainDomain::Assembly, false),
@@ -328,7 +343,10 @@ pub fn supported_language_catalog() -> Vec<ProgrammingLanguageSupport> {
         lang("assembly", "Assembly", LanguageSupportKind::LanguageFamily, ToolchainDomain::Assembly, &["asm", "s", "S"], &[], &["nasm", "as", "clang"], vec![
             tool("nasm", "NASM", &["nasm"], "https://www.nasm.us/", "https://www.nasm.us/docs.php", "Download NASM or install through the platform package manager."),
             tool("binutils", "GNU assembler", &["as"], "https://www.gnu.org/software/binutils/", "https://sourceware.org/binutils/docs/as/", "Install GNU binutils through the platform package manager."),
-            tool("llvm", "LLVM integrated assembler", &["clang"], "https://llvm.org/", "https://clang.llvm.org/docs/CommandGuide/clang.html", "Install LLVM/Clang through the platform package manager."),
+            tool("llvm", "LLVM integrated assembler", &["clang", "llvm-as"], "https://llvm.org/", "https://clang.llvm.org/docs/CommandGuide/clang.html", "Install LLVM/Clang through the platform package manager."),
+        ]),
+        lang("llvm-backend", "LLVM Backend Compiler", LanguageSupportKind::Runtime, ToolchainDomain::Cpp, &["ll", "bc", "c", "cc", "cpp", "m", "mm", "s"], &["llvm-config", "llc", "opt", "llvm-as"], &["clang", "clang++"], vec![
+            tool("llvm", "LLVM/Clang Backend", &["clang", "clang++", "llvm-config", "llc", "opt", "llvm-as"], "https://llvm.org/", "https://llvm.org/docs/", "Install full LLVM/Clang through the platform package manager. On macOS Homebrew keeps it keg-only under /opt/homebrew/opt/llvm/bin."),
         ]),
         lang("c", "C", LanguageSupportKind::ProgrammingLanguage, ToolchainDomain::C, &["c", "h"], &[], &["gcc", "clang"], c_family_tooling()),
         lang("cpp", "C++", LanguageSupportKind::ProgrammingLanguage, ToolchainDomain::Cpp, &["cc", "cpp", "cxx", "hpp", "hh"], &[], &["g++", "clang++", "gcc", "clang"], c_family_tooling()),
@@ -680,10 +698,10 @@ fn c_family_tooling() -> Vec<OpenSourceTooling> {
         tool(
             "llvm-clang",
             "Clang/LLVM",
-            &["clang", "clang++"],
+            &["clang", "clang++", "llvm-config", "llc", "opt", "llvm-as"],
             "https://llvm.org/",
             "https://clang.llvm.org/docs/",
-            "Install LLVM/Clang through the platform package manager.",
+            "Install full LLVM/Clang through the platform package manager; mEditor treats it as the native backend compiler profile for C-family, assembly, and native-code handoff.",
         ),
         tool(
             "cmake",

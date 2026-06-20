@@ -3,7 +3,7 @@
 - **Product Name:** mEditor
 - **Product Expansion:** Multi Editor
 - **Short Name:** mEditor
-- **Version:** 2.2.0.18
+- **Version:** 2.2.0.20
 - **Frozen Design Version:** 2.2.0.0
 - **Product License:** mEditor Freeware EULA
 - **License Code:** LicenseRef-mEditor-Freeware-EULA
@@ -100,3 +100,5 @@
 | 67 | 2026-05-21 | Replaced remaining static frozen menu behavior with concrete Rust-backed workflows and local artifacts for every menu item; bumped the build to 2.2.0.16. | Menu workflow build | AI Assistant / Sanjay Pandey |
 | 68 | 2026-05-22 | Added the production readiness gate, JSON/Markdown readiness evidence, AI fine-tune dataset export, external trainer handoff, and Windows package/CI verification path; bumped the build to 2.2.0.17. | Production readiness build | AI Assistant / Sanjay Pandey |
 | 69 | 2026-05-22 | Fixed desktop screen-width behavior with a laptop-friendly default window, smaller minimum width, responsive workbench panes, scrollable menu/toolbar chrome, and bounded left-panel resizing; bumped the build to 2.2.0.18. | Screen-width bugfix build | AI Assistant / Sanjay Pandey |
+| 70 | 2026-06-20 | Installed full Homebrew LLVM 22.1.7 and added production-hardening bridges for DBA Workshop, SSH terminal capability audit, UI validation evidence, LLVM backend compiler detection/install support, and embedded AI/ML engine health; bumped the build to 2.2.0.19. | Production hardening bridge build | AI Assistant / Sanjay Pandey |
+| 71 | 2026-06-20 | Downloaded and vendored @xterm/xterm 5.5.0, replaced the plain SSH/local terminal output pane with the embedded xterm.js renderer, added raw keyboard input transport to the Rust terminal backend, and packaged xterm runtime/license assets; bumped the build to 2.2.0.20. | xterm renderer build | AI Assistant / Sanjay Pandey |

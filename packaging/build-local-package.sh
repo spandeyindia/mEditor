@@ -19,7 +19,7 @@ fi
 cargo build --release -p meditor-gui --offline
 
 rm -rf "$package_root"
-mkdir -p "$package_root/bin" "$package_root/docs" "$package_root/setup" "$package_root/packaging"
+mkdir -p "$package_root/bin" "$package_root/docs" "$package_root/setup" "$package_root/packaging" "$package_root/vendor"
 
 cp "target/release/$binary_name" "$package_root/bin/$launcher_name"
 cp VERSION README.md LICENSE.md "$package_root/"
@@ -27,6 +27,7 @@ cp docs/USER_GUIDE.md docs/GLOBAL_METADATA.md docs/mEditor_VER_2_2_DESIGN_FREEZE
 cp -R setup/. "$package_root/setup/"
 find "$package_root/setup" -name .DS_Store -delete
 cp packaging/verify-cross-platform-package.sh packaging/build-local-package.ps1 packaging/verify-cross-platform-package.ps1 "$package_root/packaging/"
+cp -R vendor/xterm "$package_root/vendor/"
 
 cat > "$package_root/README-FIRST.txt" <<EOF
 mEditor ${version}

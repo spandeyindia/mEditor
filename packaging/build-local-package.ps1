@@ -22,13 +22,15 @@ New-Item -ItemType Directory -Force -Path `
     (Join-Path $PackageRoot "bin"), `
     (Join-Path $PackageRoot "docs"), `
     (Join-Path $PackageRoot "setup"), `
-    (Join-Path $PackageRoot "packaging") | Out-Null
+    (Join-Path $PackageRoot "packaging"), `
+    (Join-Path $PackageRoot "vendor") | Out-Null
 
 Copy-Item "target\release\meditor-gui.exe" (Join-Path $PackageRoot "bin\mEditor.exe")
 Copy-Item VERSION, README.md, LICENSE.md $PackageRoot
 Copy-Item docs\USER_GUIDE.md, docs\GLOBAL_METADATA.md, docs\mEditor_VER_2_2_DESIGN_FREEZE.md (Join-Path $PackageRoot "docs")
 Copy-Item -Recurse setup\* (Join-Path $PackageRoot "setup")
 Copy-Item packaging\verify-cross-platform-package.ps1 (Join-Path $PackageRoot "packaging")
+Copy-Item -Recurse vendor\xterm (Join-Path $PackageRoot "vendor")
 
 @"
 mEditor $Version

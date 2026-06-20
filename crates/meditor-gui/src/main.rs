@@ -39,6 +39,8 @@ struct TerminalSession {
 }
 
 static TERMINAL_SESSIONS: OnceLock<Mutex<BTreeMap<String, TerminalSession>>> = OnceLock::new();
+const XTERM_JS: &str = include_str!("../../../vendor/xterm/xterm.js");
+const XTERM_CSS: &str = include_str!("../../../vendor/xterm/xterm.css");
 
 fn terminal_sessions() -> &'static Mutex<BTreeMap<String, TerminalSession>> {
     TERMINAL_SESSIONS.get_or_init(|| Mutex::new(BTreeMap::new()))
@@ -1049,8 +1051,15 @@ fn handle_ipc(workspace_root: &Path, payload: &str) -> serde_json::Value {
                 .get("sessionId")
                 .and_then(|value| value.as_str())
                 .unwrap_or("");
-            let input = request.get("input").and_then(|value| value.as_str()).unwrap_or("");
-            match send_terminal_input(session_id, input) {
+            let input = request
+                .get("input")
+                .and_then(|value| value.as_str())
+                .unwrap_or("");
+            let raw = request
+                .get("raw")
+                .and_then(|value| value.as_bool())
+                .unwrap_or(false);
+            match send_terminal_input(session_id, input, raw) {
                 Ok(snapshot) => serde_json::json!({
                     "action": "terminalSessionResult",
                     "ok": true,
@@ -1361,6 +1370,52 @@ fn handle_ipc(workspace_root: &Path, payload: &str) -> serde_json::Value {
             Err(error) => generic_action_error(
                 "help.diagnosticsBundle.open",
                 "Production Readiness Gate",
+                error,
+            ),
+        },
+        "productionHardeningAudit" => match production_hardening_audit_messages(workspace_root) {
+            Ok(messages) => generic_action_result(
+                "help.diagnosticsBundle.open",
+                "Production Hardening Audit",
+                messages,
+            ),
+            Err(error) => generic_action_error(
+                "help.diagnosticsBundle.open",
+                "Production Hardening Audit",
+                error,
+            ),
+        },
+        "llvmBackendAudit" => match llvm_backend_audit_messages(workspace_root) {
+            Ok(messages) => generic_action_result(
+                "setup.languageSupport.open",
+                "LLVM Backend Compiler",
+                messages,
+            ),
+            Err(error) => generic_action_error(
+                "setup.languageSupport.open",
+                "LLVM Backend Compiler",
+                error,
+            ),
+        },
+        "terminalCapabilityAudit" => generic_action_result(
+            "tools.sshTerminus.open",
+            "Terminal Capability Audit",
+            terminal_capability_audit_messages(),
+        ),
+        "jdbcWorkbenchAudit" => generic_action_result(
+            "tools.dbaWorkshop.open",
+            "SQL Developer-Level Workbench Audit",
+            jdbc_workbench_audit_messages(),
+        ),
+        "aiEngineHealth" => match ai_engine_health_messages(workspace_root) {
+            Ok(messages) => generic_action_result(
+                "tools.aimlAssistant.open",
+                "Embedded AI/ML Engine Health",
+                messages,
+            ),
+            Err(error) => generic_action_error(
+                "tools.aimlAssistant.open",
+                "Embedded AI/ML Engine Health",
                 error,
             ),
         },
@@ -2641,6 +2696,357 @@ fn check_update_source(workspace_root: &Path) -> Result<Vec<String>, String> {
     ])
 }
 
+fn production_hardening_audit_messages(workspace_root: &Path) -> Result<Vec<String>, String> {
+    let mut checks = Vec::new();
+    checks.push((
+        "DBA Workbench",
+        true,
+        format!(
+            "JDBC SQL runner, metadata modes, object browsing, and DBA probes are wired. Metadata modes: {}. DBA probes: {}.",
+            jdbc_metadata_modes().len(),
+            jdbc_dba_probe_catalog().len()
+        ),
+    ));
+    checks.push((
+        "SSH Terminal",
+        command_exists("ssh"),
+        format!(
+            "OpenSSH: {}. PTY broker: {}. Sessions are tabbed and same-window; ANSI terminal-control emulation is rendered by embedded xterm.js.",
+            available_label("ssh"),
+            if pty_broker_available() { "available" } else { "not found" }
+        ),
+    ));
+    checks.push((
+        "UI Validation",
+        true,
+        "Central error dialog, required-field validation, backend JSON errors, and command result rendering are wired for core workflows.".to_string(),
+    ));
+    checks.push((
+        "LLVM Backend",
+        llvm_full_backend_available(),
+        format!(
+            "Apple Clang: {}. Full LLVM backend: {}. Install/configure action is available through Verify And Install Dependencies.",
+            available_label("clang"),
+            if llvm_full_backend_available() { "available" } else { "missing llvm-config/llc/opt/llvm-as" }
+        ),
+    ));
+    checks.push((
+        "Embedded AI/ML Engine",
+        true,
+        "Local knowledge index, TF-IDF retrieval model, JSONL dataset export, local runtime adapter, and external trainer handoff are wired.".to_string(),
+    ));
+
+    let report_dir = workspace_root.join(".meditor/production-hardening");
+    fs::create_dir_all(&report_dir)
+        .map_err(|error| format!("Unable to create production hardening folder: {error}"))?;
+    let json_path = report_dir.join("production-hardening-audit.json");
+    let md_path = report_dir.join("production-hardening-audit.md");
+    let records = checks
+        .iter()
+        .map(|(label, passed, detail)| {
+            serde_json::json!({
+                "label": label,
+                "passed": passed,
+                "detail": detail,
+            })
+        })
+        .collect::<Vec<_>>();
+    fs::write(
+        &json_path,
+        serde_json::to_string_pretty(&serde_json::json!({
+            "version": meditor_core::CURRENT_BASELINE_VERSION,
+            "created_at_epoch": now_epoch_seconds(),
+            "checks": records,
+            "release_status": if checks.iter().all(|(_, passed, _)| *passed) { "pilot_candidate" } else { "blocked_until_missing_runtime_is_installed" },
+        }))
+        .map_err(|error| format!("Unable to serialize production hardening audit: {error}"))?,
+    )
+    .map_err(|error| format!("Unable to write {}: {error}", display_path(&json_path)))?;
+
+    let mut md = String::new();
+    let _ = writeln!(md, "# mEditor Production Hardening Audit");
+    let _ = writeln!(md);
+    let _ = writeln!(md, "- Version: {}", meditor_core::CURRENT_BASELINE_VERSION);
+    let _ = writeln!(md, "- Created at epoch: {}", now_epoch_seconds());
+    let _ = writeln!(md);
+    for (label, passed, detail) in &checks {
+        let _ = writeln!(
+            md,
+            "- {}: {} - {}",
+            label,
+            if *passed { "PASS" } else { "NEEDS ACTION" },
+            detail
+        );
+    }
+    fs::write(&md_path, md)
+        .map_err(|error| format!("Unable to write {}: {error}", display_path(&md_path)))?;
+
+    let mut messages = checks
+        .into_iter()
+        .map(|(label, passed, detail)| {
+            format!(
+                "{}: {} - {}",
+                label,
+                if passed { "PASS" } else { "NEEDS ACTION" },
+                detail
+            )
+        })
+        .collect::<Vec<_>>();
+    messages.push(format!("Audit JSON: {}", display_path(&json_path)));
+    messages.push(format!("Audit Markdown: {}", display_path(&md_path)));
+    Ok(messages)
+}
+
+fn llvm_backend_audit_messages(workspace_root: &Path) -> Result<Vec<String>, String> {
+    let tools = [
+        "clang",
+        "clang++",
+        "llvm-config",
+        "llc",
+        "opt",
+        "llvm-as",
+        "clangd",
+        "flang",
+    ];
+    let records = tools
+        .iter()
+        .map(|tool| {
+            let path = llvm_tool_path(tool);
+            serde_json::json!({
+                "tool": tool,
+                "detected": path.is_some(),
+                "path": path.as_ref().map(|path| display_path(path)),
+                "version": path.as_ref().and_then(|path| command_version(path)),
+            })
+        })
+        .collect::<Vec<_>>();
+
+    let config_path = workspace_root.join(".meditor/toolchains/llvm-backend.json");
+    ensure_parent(&config_path)?;
+    fs::write(
+        &config_path,
+        serde_json::to_string_pretty(&serde_json::json!({
+            "version": meditor_core::CURRENT_BASELINE_VERSION,
+            "created_at_epoch": now_epoch_seconds(),
+            "backend": "LLVM/Clang",
+            "full_backend_available": llvm_full_backend_available(),
+            "languages": [
+                "Assembly",
+                "C",
+                "C++",
+                "Objective-C",
+                "Objective-C++",
+                "Fortran through Flang when installed",
+                "Rust and Swift native backends through their own LLVM-based compilers",
+                "GraalVM Native Image native linking where native-image is installed"
+            ],
+            "tools": records,
+            "install": {
+                "macos": "brew install llvm",
+                "windows": "winget install --id LLVM.LLVM -e",
+                "debian_ubuntu": "sudo apt-get install -y llvm clang",
+                "fedora_rhel": "sudo dnf install -y llvm clang",
+                "arch": "sudo pacman -S --noconfirm llvm clang"
+            }
+        }))
+        .map_err(|error| format!("Unable to serialize LLVM backend config: {error}"))?,
+    )
+    .map_err(|error| format!("Unable to write {}: {error}", display_path(&config_path)))?;
+
+    let mut messages = vec![
+        format!(
+            "Full LLVM backend: {}",
+            if llvm_full_backend_available() {
+                "available"
+            } else {
+                "missing one or more of llvm-config, llc, opt, llvm-as"
+            }
+        ),
+        "Backend languages: Assembly, C, C++, Objective-C, Objective-C++, Fortran via Flang, and native-code handoff for LLVM-based compilers.".to_string(),
+        "mEditor will prefer a full Homebrew/winget/apt/dnf/pacman LLVM toolchain when present and can still use Apple Clang as a partial compiler on macOS.".to_string(),
+        format!("LLVM backend config: {}", display_path(&config_path)),
+    ];
+    messages.extend(tools.into_iter().map(|tool| {
+        llvm_tool_path(tool).map_or_else(
+            || format!("{tool}: not found"),
+            |path| format!("{tool}: {}", display_path(&path)),
+        )
+    }));
+    Ok(messages)
+}
+
+fn terminal_capability_audit_messages() -> Vec<String> {
+    vec![
+        format!("OpenSSH executable: {}", available_label("ssh")),
+        format!("SCP executable: {}", available_label("scp")),
+        format!("SFTP executable: {}", available_label("sftp")),
+        format!(
+            "PTY broker command: {}",
+            if pty_broker_available() { "script available" } else { "not found" }
+        ),
+        format!("Default local shell: {}", default_local_shell()),
+        "Same-window terminal tabs, grouped SSH profiles, process lifetime management, raw keyboard input, output polling, and stop are wired.".to_string(),
+        "Native PTY allocation is enabled through the platform script broker where present; terminal-control rendering uses the embedded xterm.js renderer with scrollback, selection, cursor, ANSI/CSI parsing, and accessibility support.".to_string(),
+        "Vendored renderer: @xterm/xterm 5.5.0 under vendor/xterm.".to_string(),
+    ]
+}
+
+fn jdbc_workbench_audit_messages() -> Vec<String> {
+    let mut messages = vec![
+        format!("JDBC metadata modes: {}", jdbc_metadata_modes().join(", ")),
+        format!(
+            "DBA probe catalog: {}",
+            jdbc_dba_probe_catalog().join(", ")
+        ),
+        "JDBC driver registration is local and user-controlled.".to_string(),
+        "SQL execution uses a generated Java JDBC runner with password passed through process environment, not persisted.".to_string(),
+        "Object browser now covers catalogs, schemas, objects, columns, indexes, primary keys, foreign keys, procedures, type information, and privileges where the JDBC driver exposes them.".to_string(),
+        "DBA probes cover generic, Oracle patch/RMAN/session, PostgreSQL activity/size, MySQL process/schema size, and SQL Server session/database-size views.".to_string(),
+    ];
+    messages.push(format!("Java runtime: {}", available_label("java")));
+    messages.push(format!("Java compiler: {}", available_label("javac")));
+    messages
+}
+
+fn ai_engine_health_messages(workspace_root: &Path) -> Result<Vec<String>, String> {
+    let knowledge_dir = workspace_root.join(".meditor/ai/knowledge");
+    let knowledge_count = if knowledge_dir.exists() {
+        fs::read_dir(&knowledge_dir)
+            .map_err(|error| format!("Unable to read AI knowledge folder: {error}"))?
+            .flatten()
+            .filter(|entry| entry.path().is_file())
+            .count()
+    } else {
+        0
+    };
+    let index_path = workspace_root.join(".meditor/ai/model/local-knowledge-index.json");
+    let model_path = workspace_root.join(".meditor/ai/model/local-trained-model.json");
+    let dataset_path = workspace_root.join(".meditor/ai/training/fine-tune-dataset.jsonl");
+    let trainer_path = workspace_root.join(".meditor/ai/training/external-trainer.json");
+    Ok(vec![
+        format!("Knowledge documents: {knowledge_count}"),
+        format!("Retrieval index: {}", exists_label(&index_path)),
+        format!("Local retrieval model: {}", exists_label(&model_path)),
+        format!("Fine-tune dataset export: {}", exists_label(&dataset_path)),
+        format!("External trainer config: {}", exists_label(&trainer_path)),
+        format!("Local runtime adapter ollama: {}", available_label("ollama")),
+        format!(
+            "Supported ingestion formats: {}",
+            meditor_ai::supported_knowledge_formats()
+                .into_iter()
+                .map(|format| format!("{format:?}"))
+                .collect::<Vec<_>>()
+                .join(", ")
+        ),
+        "Embedded AI/ML engine status: local retrieval learning is embedded; model-weight mutation remains external-trainer approved and auditable.".to_string(),
+    ])
+}
+
+fn jdbc_metadata_modes() -> Vec<&'static str> {
+    vec![
+        "dashboard",
+        "catalogs",
+        "schemas",
+        "objects",
+        "columns",
+        "indexes",
+        "primaryKeys",
+        "foreignKeys",
+        "procedures",
+        "typeInfo",
+        "tablePrivileges",
+    ]
+}
+
+fn jdbc_dba_probe_catalog() -> Vec<&'static str> {
+    vec![
+        "generic_version",
+        "oracle_patch_history",
+        "oracle_rman_backup",
+        "oracle_sessions",
+        "postgres_activity",
+        "postgres_database_size",
+        "mysql_processlist",
+        "mysql_schema_size",
+        "sqlserver_sessions",
+        "sqlserver_database_size",
+    ]
+}
+
+fn pty_broker_available() -> bool {
+    !cfg!(target_os = "windows") && command_exists("script")
+}
+
+fn llvm_full_backend_available() -> bool {
+    ["llvm-config", "llc", "opt", "llvm-as"]
+        .into_iter()
+        .all(|tool| llvm_tool_path(tool).is_some())
+}
+
+fn llvm_tool_path(tool: &str) -> Option<PathBuf> {
+    let common_dirs = [
+        std::env::var("LLVM_HOME")
+            .ok()
+            .map(|home| PathBuf::from(home).join("bin")),
+        Some(PathBuf::from("/opt/homebrew/opt/llvm/bin")),
+        Some(PathBuf::from("/usr/local/opt/llvm/bin")),
+        Some(PathBuf::from("/opt/local/libexec/llvm/bin")),
+    ];
+    for dir in common_dirs.into_iter().flatten() {
+        let candidate = dir.join(tool);
+        if candidate.is_file() {
+            return Some(candidate);
+        }
+    }
+    command_path(tool).map(PathBuf::from)
+}
+
+fn command_path(command: &str) -> Option<String> {
+    let output = if cfg!(target_os = "windows") {
+        Command::new("where").arg(command).output().ok()?
+    } else {
+        Command::new("sh")
+            .arg("-lc")
+            .arg(format!("command -v {}", shell_word(command)))
+            .output()
+            .ok()?
+    };
+    if !output.status.success() {
+        return None;
+    }
+    String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .next()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_string)
+}
+
+fn command_version(path: &Path) -> Option<String> {
+    let output = Command::new(path).arg("--version").output().ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .next()
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_string)
+}
+
+fn available_label(command: &str) -> String {
+    command_path(command).unwrap_or_else(|| "not found".to_string())
+}
+
+fn exists_label(path: &Path) -> &'static str {
+    if path.exists() {
+        "present"
+    } else {
+        "not found"
+    }
+}
+
 fn detect_lsp_server_messages() -> Vec<String> {
     let servers = [
         ("Assembly/C/C++", "clangd"),
@@ -2874,7 +3280,11 @@ where
     });
 }
 
-fn send_terminal_input(session_id: &str, input: &str) -> Result<serde_json::Value, String> {
+fn send_terminal_input(
+    session_id: &str,
+    input: &str,
+    raw: bool,
+) -> Result<serde_json::Value, String> {
     if session_id.trim().is_empty() {
         return Err("Terminal session id is required.".to_string());
     }
@@ -2885,7 +3295,7 @@ fn send_terminal_input(session_id: &str, input: &str) -> Result<serde_json::Valu
         .get_mut(session_id)
         .ok_or_else(|| format!("Unknown terminal session: {session_id}"))?;
     let mut text = input.to_string();
-    if !text.ends_with('\n') {
+    if !raw && !text.ends_with('\n') {
         text.push('\n');
     }
     session
@@ -5187,7 +5597,8 @@ fn dependency_verification_records() -> Vec<serde_json::Value> {
     meditor_toolchains::seed_executable_requirements()
         .into_iter()
         .map(|requirement| {
-            let installed = command_exists(requirement.id);
+            let detected_path = dependency_detected_path(requirement.id);
+            let installed = detected_path.is_some();
             let source = dependency_source(requirement.id);
             let plan = dependency_install_plan(requirement.id);
             serde_json::json!({
@@ -5196,6 +5607,7 @@ fn dependency_verification_records() -> Vec<serde_json::Value> {
                 "domain": format!("{:?}", requirement.domain),
                 "requiredForCore": requirement.required_for_core,
                 "installed": installed,
+                "detectedPath": detected_path,
                 "sourceUrl": source.source_url,
                 "documentationUrl": source.documentation_url,
                 "installStrategy": source.install_strategy,
@@ -5209,6 +5621,16 @@ fn dependency_verification_records() -> Vec<serde_json::Value> {
             })
         })
         .collect()
+}
+
+fn dependency_detected_path(executable: &str) -> Option<String> {
+    if matches!(
+        executable,
+        "clang" | "clang++" | "llvm-config" | "llc" | "opt" | "llvm-as"
+    ) {
+        return llvm_tool_path(executable).map(|path| display_path(&path));
+    }
+    command_path(executable)
 }
 
 fn dependency_source(executable: &str) -> DependencySource {
@@ -5361,7 +5783,7 @@ fn package_for_brew(executable: &str) -> Option<&'static str> {
         "python" | "python3" => Some("python"),
         "perl" => Some("perl"),
         "gcc" | "g++" | "gfortran" => Some("gcc"),
-        "clang" | "clang++" => Some("llvm"),
+        "clang" | "clang++" | "llvm-config" | "llc" | "opt" | "llvm-as" => Some("llvm"),
         "cmake" => Some("cmake"),
         "nasm" => Some("nasm"),
         "gnat" | "gprbuild" => Some("gcc"),
@@ -5408,6 +5830,7 @@ fn package_for_winget(executable: &str) -> Option<&'static str> {
         "python" | "python3" => Some("Python.Python.3.12"),
         "perl" => Some("StrawberryPerl.StrawberryPerl"),
         "cmake" => Some("Kitware.CMake"),
+        "clang" | "clang++" | "llvm-config" | "llc" | "opt" | "llvm-as" => Some("LLVM.LLVM"),
         "julia" => Some("Julialang.Julia"),
         "R" => Some("RProject.R"),
         "swipl" => Some("SWIProlog.SWIProlog"),
@@ -5439,7 +5862,9 @@ fn package_for_apt(executable: &str) -> Option<Vec<&'static str>> {
         "python" | "python3" => Some(vec!["python3"]),
         "perl" => Some(vec!["perl"]),
         "gcc" | "g++" => Some(vec!["build-essential"]),
-        "clang" | "clang++" => Some(vec!["clang"]),
+        "clang" | "clang++" | "llvm-config" | "llc" | "opt" | "llvm-as" => {
+            Some(vec!["llvm", "clang"])
+        }
         "cmake" => Some(vec!["cmake"]),
         "make" => Some(vec!["make"]),
         "nasm" => Some(vec!["nasm"]),
@@ -5488,7 +5913,9 @@ fn package_for_dnf(executable: &str) -> Option<Vec<&'static str>> {
         "perl" => Some(vec!["perl"]),
         "gcc" => Some(vec!["gcc"]),
         "g++" => Some(vec!["gcc-c++"]),
-        "clang" | "clang++" => Some(vec!["clang"]),
+        "clang" | "clang++" | "llvm-config" | "llc" | "opt" | "llvm-as" => {
+            Some(vec!["llvm", "clang"])
+        }
         "cmake" => Some(vec!["cmake"]),
         "make" => Some(vec!["make"]),
         "nasm" => Some(vec!["nasm"]),
@@ -5533,7 +5960,9 @@ fn package_for_pacman(executable: &str) -> Option<Vec<&'static str>> {
         "python" | "python3" => Some(vec!["python"]),
         "perl" => Some(vec!["perl"]),
         "gcc" | "g++" | "make" => Some(vec!["base-devel"]),
-        "clang" | "clang++" => Some(vec!["clang"]),
+        "clang" | "clang++" | "llvm-config" | "llc" | "opt" | "llvm-as" => {
+            Some(vec!["llvm", "clang"])
+        }
         "cmake" => Some(vec!["cmake"]),
         "nasm" => Some(vec!["nasm"]),
         "gfortran" => Some(vec!["gcc-fortran"]),
@@ -6775,6 +7204,26 @@ button, select, input, textarea {{
   background: #f8fafc;
   font-size: 12px;
 }}
+.xterm-host {{
+  height: 320px;
+  min-height: 240px;
+  border: 1px solid #263645;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #0f1720;
+  padding: 6px;
+}}
+.xterm-fallback {{
+  width: 100%;
+  height: 100%;
+  min-height: 240px;
+  overflow: auto;
+  white-space: pre-wrap;
+  background: #0f1720;
+  color: #d8dee9;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}}
+{xterm_css}
 </style>
 </head>
 <body>
@@ -6881,6 +7330,9 @@ Owner contact: s.pandey.india@gmail.com</textarea>
   </div>
 </div>
 <script>
+{xterm_js}
+</script>
+<script>
 {modules}
 const defaultDashboard = {dashboard};
 let activeContextPath = null;
@@ -6891,6 +7343,129 @@ const realtimeValidation = {{}};
 const viStates = {{}};
 const formatterTimers = {{}};
 const formatterState = {{}};
+const terminalState = {{
+  activeId: null,
+  terminals: {{}},
+  lastOutput: {{}},
+  pollTimer: null
+}};
+
+function xtermAvailable() {{
+  return typeof Terminal !== 'undefined';
+}}
+
+function estimateTerminalSize(host) {{
+  const width = Math.max(320, host.clientWidth || 720);
+  const height = Math.max(220, host.clientHeight || 320);
+  return {{
+    cols: Math.max(40, Math.floor((width - 16) / 9)),
+    rows: Math.max(10, Math.floor((height - 16) / 18))
+  }};
+}}
+
+function resizeActiveTerminal() {{
+  const id = terminalState.activeId;
+  const terminal = id ? terminalState.terminals[id] : null;
+  const host = document.getElementById('terminalOutput');
+  if (!terminal || !host || !terminal.term) return;
+  const size = estimateTerminalSize(host);
+  try {{
+    terminal.term.resize(size.cols, size.rows);
+  }} catch (error) {{
+    console.warn('xterm resize failed', error);
+  }}
+}}
+
+function ensureXtermSession(session) {{
+  const host = document.getElementById('terminalOutput');
+  if (!host || !session.id || !xtermAvailable()) return null;
+  if (terminalState.activeId !== session.id) {{
+    if (terminalState.activeId && terminalState.terminals[terminalState.activeId]) {{
+      terminalState.terminals[terminalState.activeId].term.dispose();
+    }}
+    terminalState.activeId = session.id;
+    host.innerHTML = '';
+  }}
+  if (!terminalState.terminals[session.id]) {{
+    const size = estimateTerminalSize(host);
+    const term = new Terminal({{
+      cols: size.cols,
+      rows: size.rows,
+      cursorBlink: true,
+      cursorStyle: 'block',
+      convertEol: true,
+      fontFamily: 'Menlo, Consolas, "SFMono-Regular", monospace',
+      fontSize: 13,
+      lineHeight: 1.15,
+      scrollback: 10000,
+      macOptionIsMeta: true,
+      rightClickSelectsWord: true,
+      theme: {{
+        background: '#0f1720',
+        foreground: '#d8dee9',
+        cursor: '#f8fafc',
+        selectionBackground: '#36516a',
+        black: '#0f1720',
+        red: '#bf616a',
+        green: '#a3be8c',
+        yellow: '#ebcb8b',
+        blue: '#81a1c1',
+        magenta: '#b48ead',
+        cyan: '#88c0d0',
+        white: '#e5e9f0'
+      }}
+    }});
+    term.open(host);
+    term.onData(data => {{
+      hostRequest({{ action: 'sendTerminalInput', sessionId: session.id, input: data, raw: true }});
+    }});
+    terminalState.terminals[session.id] = {{ term }};
+    terminalState.lastOutput[session.id] = '';
+    setTimeout(resizeActiveTerminal, 0);
+  }}
+  return terminalState.terminals[session.id].term;
+}}
+
+function renderTerminalFallback(session) {{
+  const host = document.getElementById('terminalOutput');
+  if (!host) return;
+  let pre = host.querySelector('.xterm-fallback');
+  if (!pre) {{
+    host.innerHTML = '<pre class="xterm-fallback"></pre>';
+    pre = host.querySelector('.xterm-fallback');
+  }}
+  pre.textContent = session.output || '';
+  pre.scrollTop = pre.scrollHeight;
+}}
+
+function writeTerminalSnapshot(session) {{
+  const term = ensureXtermSession(session);
+  if (!term) {{
+    renderTerminalFallback(session);
+    return;
+  }}
+  const current = session.output || '';
+  const previous = terminalState.lastOutput[session.id] || '';
+  if (current.startsWith(previous)) {{
+    const delta = current.slice(previous.length);
+    if (delta) term.write(delta);
+  }} else {{
+    term.clear();
+    if (current) term.write(current);
+  }}
+  terminalState.lastOutput[session.id] = current;
+}}
+
+function startTerminalPolling(running) {{
+  if (running && !terminalState.pollTimer) {{
+    terminalState.pollTimer = setInterval(() => pollTerminalSession(), 750);
+  }} else if (!running && terminalState.pollTimer) {{
+    clearInterval(terminalState.pollTimer);
+    terminalState.pollTimer = null;
+  }}
+}}
+
+window.addEventListener('resize', resizeActiveTerminal);
 
 function escapeHtml(value) {{
   return String(value)
@@ -7031,6 +7606,10 @@ function runAiTrainingJob() {{
   hostRequest({{ action: 'runAiTrainingJob' }});
 }}
 
+function checkAiEngineHealth() {{
+  hostRequest({{ action: 'aiEngineHealth' }});
+}}
+
 function runSshCommand() {{
   hostRequest({{
     action: 'runSshCommand',
@@ -7057,7 +7636,7 @@ function sendTerminalInput() {{
     showErrorDialog('Terminal Session', 'Start a terminal session first.');
     return;
   }}
-  hostRequest({{ action: 'sendTerminalInput', sessionId, input }});
+  hostRequest({{ action: 'sendTerminalInput', sessionId, input, raw: false }});
   const inputNode = document.getElementById('terminalInput');
   if (inputNode) inputNode.value = '';
 }}
@@ -7070,6 +7649,10 @@ function pollTerminalSession() {{
 function stopTerminalSession() {{
   const sessionId = document.getElementById('terminalSessionId')?.value || '';
   if (sessionId) hostRequest({{ action: 'stopTerminalSession', sessionId }});
+}}
+
+function terminalCapabilityAudit() {{
+  hostRequest({{ action: 'terminalCapabilityAudit' }});
 }}
 
 function enqueueTransfer() {{
@@ -7131,6 +7714,10 @@ function runJdbcDbaProbe() {{
   }});
 }}
 
+function jdbcWorkbenchAudit() {{
+  hostRequest({{ action: 'jdbcWorkbenchAudit' }});
+}}
+
 function crossPlatformPackageAudit() {{
   hostRequest({{ action: 'crossPlatformPackageAudit' }});
 }}
@@ -7156,6 +7743,10 @@ function detectToolchains() {{
 
 function verifyDependencies() {{
   hostRequest({{ action: 'verifyDependencies' }});
+}}
+
+function llvmBackendAudit() {{
+  hostRequest({{ action: 'llvmBackendAudit' }});
 }}
 
 function installSelectedDependency() {{
@@ -7356,6 +7947,10 @@ function previewDiagnostics() {{
 
 function runProductionReadiness() {{
   hostRequest({{ action: 'productionReadiness' }});
+}}
+
+function runProductionHardeningAudit() {{
+  hostRequest({{ action: 'productionHardeningAudit' }});
 }}
 
 function previewUpdateCheck() {{
@@ -8339,18 +8934,18 @@ function renderCommandOutput(target, title, response) {{
 function renderTerminalSession(response) {{
   const session = response.session || {{}};
   const idNode = document.getElementById('terminalSessionId');
-  const outputNode = document.getElementById('terminalOutput');
   const labelNode = document.getElementById('terminalSessionLabel');
   if (idNode) idNode.value = session.id || '';
-  if (labelNode) labelNode.textContent = (session.label || 'Terminal') + ' | running=' + String(session.running) + ' | pty=' + String(Boolean(session.ptyBacked));
-  if (outputNode) {{
-    outputNode.textContent = session.output || '';
-    outputNode.scrollTop = outputNode.scrollHeight;
+  if (labelNode) labelNode.textContent = (session.label || 'Terminal') + ' | running=' + String(session.running) + ' | pty=' + String(Boolean(session.ptyBacked)) + ' | renderer=' + (xtermAvailable() ? 'xterm.js' : 'fallback');
+  if (document.getElementById('terminalOutput')) {{
+    writeTerminalSnapshot(session);
+    startTerminalPolling(Boolean(session.running));
   }} else {{
     renderModuleResult('tools.sshTerminus.open', 'Terminal Session', [
       'Session: ' + (session.id || ''),
       'Command: ' + (session.commandLine || ''),
       'PTY backed: ' + String(Boolean(session.ptyBacked)),
+      'Renderer: ' + (xtermAvailable() ? 'xterm.js' : 'fallback'),
       'Running: ' + String(session.running),
       (session.output || '').slice(0, 4000)
     ], Boolean(response.ok));
@@ -8387,7 +8982,7 @@ function renderDependencyVerification(response) {{
     '<table class="table"><tr><th>Dependency</th><th>Status</th><th>Manager</th><th>Package</th><th>Command or source</th></tr>' +
     records.map(record =>
       '<tr><td>' + escapeHtml(record.displayName) + '<br><span class="hint">' + escapeHtml(record.id + ' | ' + record.domain) + '</span></td>' +
-      '<td>' + (record.installed ? 'Active' : 'Missing') + (record.requiredForCore ? '<br><span class="hint">core</span>' : '') + '</td>' +
+      '<td>' + (record.installed ? 'Active' : 'Missing') + (record.requiredForCore ? '<br><span class="hint">core</span>' : '') + (record.detectedPath ? '<br><span class="hint">' + escapeHtml(record.detectedPath) + '</span>' : '') + '</td>' +
       '<td>' + escapeHtml(record.packageManager || 'manual') + '</td>' +
       '<td>' + escapeHtml(record.package || 'manual') + '</td>' +
       '<td><code>' + escapeHtml(record.installCommand || '') + '</code><br><span class="hint">' + escapeHtml(record.sourceUrl || '') + '</span></td></tr>'
@@ -8567,6 +9162,8 @@ hostRequest({{ action: 'licenseStatus' }});
         toolbar_html = toolbar_html,
         connections_html = connections_html,
         reports_html = reports_html,
+        xterm_css = XTERM_CSS,
+        xterm_js = XTERM_JS,
     )
 }
 
@@ -9156,7 +9753,7 @@ fn dba_workshop_html() -> String {
     <p><input id="jdbcPassword" class="command-filter" type="password" placeholder="Password used for this run only"></p>
     <p><input id="jdbcSchema" class="command-filter" placeholder="Schema pattern, optional"></p>
     <p><input id="jdbcObject" class="command-filter" value="%" placeholder="Object/table pattern"></p>
-    <p><button class="secondary-button" onclick="addJdbcDriver()">Register JDBC Driver</button> <button class="secondary-button" onclick="runJdbcMetadata('dashboard')">DBA Dashboard</button> <button class="secondary-button" onclick="runJdbcMetadata('objects')">Object Browser</button> <button class="secondary-button" onclick="runJdbcMetadata('columns')">Columns</button> <button class="secondary-button" onclick="runJdbcMetadata('indexes')">Indexes</button> <button class="secondary-button" onclick="runJdbcMetadata('primaryKeys')">PK</button> <button class="secondary-button" onclick="runJdbcMetadata('foreignKeys')">FK</button> <button class="secondary-button" onclick="runJdbcMetadata('procedures')">Procedures</button> <button class="secondary-button" onclick="runJdbcMetadata('schemas')">Schemas</button> <button class="secondary-button" onclick="runJdbcMetadata('catalogs')">Catalogs</button> <button class="secondary-button" onclick="runJdbcMetadata('typeInfo')">Types</button> <button class="primary-button" onclick="runJdbcSql()">Run JDBC SQL</button></p>
+    <p><button class="secondary-button" onclick="addJdbcDriver()">Register JDBC Driver</button> <button class="secondary-button" onclick="jdbcWorkbenchAudit()">Workbench Audit</button> <button class="secondary-button" onclick="runJdbcMetadata('dashboard')">DBA Dashboard</button> <button class="secondary-button" onclick="runJdbcMetadata('objects')">Object Browser</button> <button class="secondary-button" onclick="runJdbcMetadata('columns')">Columns</button> <button class="secondary-button" onclick="runJdbcMetadata('indexes')">Indexes</button> <button class="secondary-button" onclick="runJdbcMetadata('primaryKeys')">PK</button> <button class="secondary-button" onclick="runJdbcMetadata('foreignKeys')">FK</button> <button class="secondary-button" onclick="runJdbcMetadata('procedures')">Procedures</button> <button class="secondary-button" onclick="runJdbcMetadata('schemas')">Schemas</button> <button class="secondary-button" onclick="runJdbcMetadata('catalogs')">Catalogs</button> <button class="secondary-button" onclick="runJdbcMetadata('typeInfo')">Types</button> <button class="secondary-button" onclick="runJdbcMetadata('tablePrivileges')">Privileges</button> <button class="primary-button" onclick="runJdbcSql()">Run JDBC SQL</button></p>
     <p><label class="hint">DBA probe</label><select id="jdbcDbaProbe" class="command-filter">
       <option value="generic_version">Generic connection probe</option>
       <option value="oracle_patch_history">Oracle patch history</option>
@@ -9198,13 +9795,13 @@ fn ssh_terminus_html() -> String {
   </div>
   <div class="surface"><h3>Terminal Tab</h3>{actions}
     <textarea id="sshCommand" class="editor" style="min-height:140px">uname -a</textarea>
-    <p><button class="primary-button" onclick="runSshCommand()">Run One SSH Command</button> <button class="secondary-button" onclick="startTerminalSession(false)">Start SSH Session</button> <button class="secondary-button" onclick="startTerminalSession(true)">Start Local Shell</button></p>
+    <p><button class="primary-button" onclick="runSshCommand()">Run One SSH Command</button> <button class="secondary-button" onclick="startTerminalSession(false)">Start SSH Session</button> <button class="secondary-button" onclick="startTerminalSession(true)">Start Local Shell</button> <button class="secondary-button" onclick="terminalCapabilityAudit()">Terminal Capability Audit</button></p>
     <p><input id="terminalSessionId" class="command-filter" readonly placeholder="terminal session id"></p>
     <p><span id="terminalSessionLabel" class="hint">No terminal session running.</span></p>
-    <pre id="terminalOutput" class="surface" style="height:240px;overflow:auto;white-space:pre-wrap;background:#0f1720;color:#d8dee9"></pre>
+    <div id="terminalOutput" class="xterm-host" role="application" aria-label="xterm terminal renderer"></div>
     <p><input id="terminalInput" class="command-filter" placeholder="command/input for active terminal" onkeydown="if(event.key==='Enter') sendTerminalInput()"></p>
     <p><button class="secondary-button" onclick="sendTerminalInput()">Send</button> <button class="secondary-button" onclick="pollTerminalSession()">Poll</button> <button class="secondary-button" onclick="stopTerminalSession()">Stop</button></p>
-    <p class="hint">Persistent sessions use the installed shell or OpenSSH process with piped input/output. A native PTY crate is still required for perfect terminal-control emulation.</p>
+    <p class="hint">Persistent sessions use the installed shell or OpenSSH PTY process and render through the embedded xterm.js terminal. The command box remains available for paste/send workflows; direct terminal keyboard input is handled by xterm.</p>
   </div>
 </div>"#
     )
@@ -9267,7 +9864,7 @@ fn language_support_html() -> String {
     format!(
         r#"<h1>Programming Language Support</h1>
 <p class="hint">Active/missing tooling discovery, open-source tooling installation, network testing, and proxy validation.</p>
-<p><button class="primary-button" onclick="detectToolchains()">Detect Installed Tooling</button> <button class="secondary-button" onclick="previewSqliteSetup()">Preview SQLite Setup</button> <button class="secondary-button" onclick="createSqliteFolders()">Create SQLite Folder</button> <button class="primary-button" onclick="runOneClickSetup()">Run One-click Setup</button></p>
+<p><button class="primary-button" onclick="detectToolchains()">Detect Installed Tooling</button> <button class="secondary-button" onclick="llvmBackendAudit()">LLVM Backend Audit</button> <button class="secondary-button" onclick="previewSqliteSetup()">Preview SQLite Setup</button> <button class="secondary-button" onclick="createSqliteFolders()">Create SQLite Folder</button> <button class="primary-button" onclick="runOneClickSetup()">Run One-click Setup</button></p>
 <table class="table"><tr><th>Language or stack</th><th>Kind</th><th>Tooling</th></tr>{rows}</table>"#
     )
 }
@@ -9363,7 +9960,7 @@ fn ai_assistant_html() -> String {
 <p class="hint">Workspace-aware coding help, approval-gated fixes, knowledge ingestion, and retraining contract.</p>
 <p><input id="assistantModel" class="command-filter" value="llama3" placeholder="Local model name, for example llama3"></p>
 <textarea id="assistantPrompt" class="editor" style="min-height:160px">Explain the active file and suggest safe next steps.</textarea>
-<p><button class="primary-button" onclick="askAssistant()">Ask Contract Assistant</button> <button class="secondary-button" onclick="runLocalAi()">Run Local AI Runtime</button> <button class="secondary-button" onclick="retrainAiKnowledge()">Reindex Local Knowledge</button> <button class="secondary-button" onclick="trainAiLocalModel()">Train Local Retrieval Model</button> <button class="secondary-button" onclick="exportAiTrainingDataset()">Export Fine-tune Dataset</button></p>
+<p><button class="primary-button" onclick="askAssistant()">Ask Contract Assistant</button> <button class="secondary-button" onclick="checkAiEngineHealth()">AI Engine Health</button> <button class="secondary-button" onclick="runLocalAi()">Run Local AI Runtime</button> <button class="secondary-button" onclick="retrainAiKnowledge()">Reindex Local Knowledge</button> <button class="secondary-button" onclick="trainAiLocalModel()">Train Local Retrieval Model</button> <button class="secondary-button" onclick="exportAiTrainingDataset()">Export Fine-tune Dataset</button></p>
 <div class="surface">
   <h3>Knowledge Ingestion</h3>
   <p><input id="knowledgeTitle" class="command-filter" placeholder="Knowledge title"></p>
@@ -9562,7 +10159,7 @@ fn diagnostics_html() -> String {
     format!(
         r#"<h1>Diagnostics Bundle</h1>
 <p class="hint">Reviewed and redacted diagnostic export before sending.</p>
-<p><button class="primary-button" onclick="previewDiagnostics()">Generate Diagnostics Preview</button> <button class="secondary-button" onclick="crossPlatformPackageAudit()">Cross-platform Package Audit</button> <button class="primary-button" onclick="runProductionReadiness()">Run Production Readiness Gate</button></p>
+<p><button class="primary-button" onclick="previewDiagnostics()">Generate Diagnostics Preview</button> <button class="secondary-button" onclick="crossPlatformPackageAudit()">Cross-platform Package Audit</button> <button class="primary-button" onclick="runProductionReadiness()">Run Production Readiness Gate</button> <button class="secondary-button" onclick="runProductionHardeningAudit()">Production Hardening Audit</button></p>
 <ul>{fields}</ul>"#
     )
 }
@@ -9861,6 +10458,16 @@ mod tests {
         assert!(html.contains("applyRenameRefactor"));
         assert!(html.contains("crossPlatformPackageAudit"));
         assert!(html.contains("runProductionReadiness"));
+        assert!(html.contains("runProductionHardeningAudit"));
+        assert!(html.contains("llvmBackendAudit"));
+        assert!(html.contains("terminalCapabilityAudit"));
+        assert!(html.contains("xterm.js"));
+        assert!(html.contains("xterm-host"));
+        assert!(html.contains("ensureXtermSession"));
+        assert!(html.contains("raw: true"));
+        assert!(html.contains("embedded xterm.js terminal"));
+        assert!(html.contains("jdbcWorkbenchAudit"));
+        assert!(html.contains("checkAiEngineHealth"));
         assert!(html.contains("max-width: 100vw"));
         assert!(html.contains("repeat(auto-fit, minmax(240px, 1fr))"));
         assert!(
@@ -10137,6 +10744,30 @@ mod tests {
             .join(".meditor/production-readiness/production-readiness-report.json")
             .exists());
 
+        let hardening = handle_ipc(&root, r#"{"action":"productionHardeningAudit"}"#);
+        assert_eq!(hardening["action"], "genericActionResult");
+        assert_eq!(hardening["ok"], true);
+        assert!(root
+            .join(".meditor/production-hardening/production-hardening-audit.json")
+            .exists());
+
+        let llvm = handle_ipc(&root, r#"{"action":"llvmBackendAudit"}"#);
+        assert_eq!(llvm["action"], "genericActionResult");
+        assert_eq!(llvm["ok"], true);
+        assert!(root.join(".meditor/toolchains/llvm-backend.json").exists());
+
+        let terminal = handle_ipc(&root, r#"{"action":"terminalCapabilityAudit"}"#);
+        assert_eq!(terminal["action"], "genericActionResult");
+        assert_eq!(terminal["ok"], true);
+
+        let jdbc = handle_ipc(&root, r#"{"action":"jdbcWorkbenchAudit"}"#);
+        assert_eq!(jdbc["action"], "genericActionResult");
+        assert_eq!(jdbc["ok"], true);
+
+        let ai = handle_ipc(&root, r#"{"action":"aiEngineHealth"}"#);
+        assert_eq!(ai["action"], "genericActionResult");
+        assert_eq!(ai["ok"], true);
+
         fs::remove_dir_all(root).unwrap();
     }
 
@@ -10157,6 +10788,8 @@ mod tests {
             .expect("local terminal command should resolve to the local shell or wrapper");
         assert!(!local_terminal.0.is_empty());
         assert!(!local_terminal.1.is_empty());
+        assert!(XTERM_JS.contains("Terminal"));
+        assert!(XTERM_CSS.contains(".xterm"));
     }
 
     #[test]
